@@ -1,5 +1,16 @@
 package util
 
+import (
+	"database/sql"
+)
+
+var (
+	db *sql.DB
+
+	columnInfos []*ColumnInfo
+	indexInfos  []*IndexInfo
+)
+
 const (
 	// MySQLDriverName represents the mysql driver name.
 	MySQLDriverName = "mysql"

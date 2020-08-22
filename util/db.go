@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	// init mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
 

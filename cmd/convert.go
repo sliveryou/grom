@@ -124,27 +124,27 @@ func getCmdConfig() (util.CMDConfig, error) {
 				err := errors.New("enabled service is invalid, service: " + service)
 				fmt.Println(err)
 				return util.CMDConfig{}, err
-			} else {
-				switch service {
-				case "FIELD_COMMENT":
-					config.EnableFieldComment = true
-				case "SQL_NULL":
-					config.EnableSqlNull = true
-				case "GUREGU_NULL":
-					config.EnableGureguNull = true
-				case "JSON_TAG":
-					config.EnableJsonTag = true
-				case "XML_TAG":
-					config.EnableXmlTag = true
-				case "GORM_TAG":
-					config.EnableGormTag = true
-				case "XORM_TAG":
-					config.EnableXormTag = true
-				case "BEEGO_TAG":
-					config.EnableBeegoTag = true
-				case "GOROSE_TAG":
-					config.EnableGoroseTag = true
-				}
+			}
+
+			switch service {
+			case "FIELD_COMMENT":
+				config.EnableFieldComment = true
+			case "SQL_NULL":
+				config.EnableSqlNull = true
+			case "GUREGU_NULL":
+				config.EnableGureguNull = true
+			case "JSON_TAG":
+				config.EnableJsonTag = true
+			case "XML_TAG":
+				config.EnableXmlTag = true
+			case "GORM_TAG":
+				config.EnableGormTag = true
+			case "XORM_TAG":
+				config.EnableXormTag = true
+			case "BEEGO_TAG":
+				config.EnableBeegoTag = true
+			case "GOROSE_TAG":
+				config.EnableGoroseTag = true
 			}
 		}
 	}

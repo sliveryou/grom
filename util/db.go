@@ -93,6 +93,10 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 		columnInfos = append(columnInfos, &ci)
 	}
 
+	if c.EnableBeegoTag {
+		tableIndexes, tableUniques = getTableIndexes(indexInfos)
+	}
+
 	return columnInfos, nil
 }
 
@@ -164,6 +168,40 @@ func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnInde
 			} else {
 				columnIndexes = append(columnIndexes, indexInfo)
 			}
+		}
+	}
+
+	return
+}
+
+// getTableIndexes returns the details of table indexes and table unique indexes.
+func getTableIndexes(indexInfos []*IndexInfo) (tableIndexes []string, tableUniques []string) {
+	tableIndexMap, tableUniqueMap := make(map[string][]string), make(map[string][]string)
+
+	for i := range indexInfos {
+		indexInfo := indexInfos[i]
+		columnName := fmt.Sprintf("%q", convertName(indexInfo.ColumnName))
+		if indexInfo.IsUnique {
+			uniqueIndexes := tableUniqueMap[indexInfo.Name]
+			uniqueIndexes = append(uniqueIndexes, columnName)
+			tableUniqueMap[indexInfo.Name] = uniqueIndexes
+		} else {
+			normalIndexes := tableIndexMap[indexInfo.Name]
+			normalIndexes = append(normalIndexes, columnName)
+			tableIndexMap[indexInfo.Name] = normalIndexes
+		}
+	}
+
+	if len(tableUniqueMap) != 0 {
+		for indexName := range tableUniqueMap {
+			columns := tableUniqueMap[indexName]
+			tableUniques = append(tableUniques, strings.Join(columns, ","))
+		}
+	}
+	if len(tableIndexMap) != 0 {
+		for indexName := range tableIndexMap {
+			columns := tableIndexMap[indexName]
+			tableIndexes = append(tableIndexes, strings.Join(columns, ","))
 		}
 	}
 

@@ -10,6 +10,9 @@ var (
 	columnInfos []*ColumnInfo
 	indexInfos  []*IndexInfo
 
+	tableIndexes []string
+	tableUniques []string
+
 	abbreviation = map[string]struct{}{
 		"API":   {},
 		"ASCII": {},

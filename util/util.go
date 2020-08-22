@@ -133,6 +133,11 @@ func getGormTag(ci *ColumnInfo) string {
 	return generateTag(ci, "gorm")
 }
 
+// getXormTag returns the tag string of xorm.
+func getXormTag(ci *ColumnInfo) string {
+	return generateTag(ci, "xorm")
+}
+
 // getGoroseTag returns the tag string of gorose.
 func getGoroseTag(ci *ColumnInfo) string {
 	return fmt.Sprintf("gorose:%q", ci.Name)

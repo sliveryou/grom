@@ -120,6 +120,34 @@ func TestGetGormTag(t *testing.T) {
 	}
 }
 
+func TestGetXormTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
+			IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id"},
+			"xorm:\"pk autoincr bigint(20) 'id' comment('用户id')\""},
+		{ColumnInfo{Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
+			IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
+			Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}}},
+			"xorm:\"varchar(255) 'name' notnull index(name_index) index(name_email_index) default('user') comment('用户名称')\""},
+		{ColumnInfo{Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
+			IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
+			Indexes:       []*IndexInfo{{Name: "name_email_index"}},
+			UniqueIndexes: []*IndexInfo{{Name: "email_index"}}},
+			"xorm:\"varchar(255) 'email' notnull index(name_email_index) unique(email_index) default('email') comment('用户邮箱')\""},
+	}
+
+	for _, c := range cases {
+		output := getXormTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getXormTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
 func TestGetGoroseTag(t *testing.T) {
 	cases := []struct {
 		ci          ColumnInfo

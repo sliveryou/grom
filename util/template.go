@@ -21,11 +21,26 @@ const gormTemplate = `gorm:"
 	{{- if .Comment }};comment:'{{ .Comment }}'{{ end -}}
 "`
 
+const xormTemplate = `xorm:"
+	{{- if .IsPrimaryKey }}pk {{ end -}}
+	{{- if .IsAutoIncrement }}autoincr {{ end -}}
+	{{ .Type }} '{{ .Name }}'
+	{{- if or .IsNullable .IsPrimaryKey | not }} notnull{{ end -}}
+	{{- range $i, $v := .Indexes }} index({{ $v.Name }}){{ end -}}
+	{{- range $i, $v := .UniqueIndexes }} unique({{ $v.Name }}){{ end -}}
+	{{- if .Default }} default('{{ .Default }}'){{ end -}}
+	{{- if .Comment }} comment('{{ .Comment }}'){{ end -}}
+"`
+
 func init() {
 	var err error
 	generator, err = template.New("gorm").Parse(gormTemplate)
 	if err != nil {
 		fmt.Println("parse gorm template err:", err)
+	}
+	generator, err = generator.New("xorm").Parse(xormTemplate)
+	if err != nil {
+		fmt.Println("parse xorm template err:", err)
 	}
 }
 

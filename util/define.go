@@ -9,6 +9,42 @@ var (
 
 	columnInfos []*ColumnInfo
 	indexInfos  []*IndexInfo
+
+	abbreviation = map[string]struct{}{
+		"API":   {},
+		"ASCII": {},
+		"CPU":   {},
+		"CSS":   {},
+		"DNS":   {},
+		"EOF":   {},
+		"GUID":  {},
+		"HTML":  {},
+		"HTTP":  {},
+		"HTTPS": {},
+		"ID":    {},
+		"IP":    {},
+		"JSON":  {},
+		"LHS":   {},
+		"QPS":   {},
+		"RAM":   {},
+		"RHS":   {},
+		"RPC":   {},
+		"SLA":   {},
+		"SMTP":  {},
+		"SSH":   {},
+		"TLS":   {},
+		"TTL":   {},
+		"UI":    {},
+		"UID":   {},
+		"UUID":  {},
+		"URI":   {},
+		"URL":   {},
+		"UTF8":  {},
+		"VM":    {},
+		"XML":   {},
+		"XSRF":  {},
+		"XSS":   {},
+	}
 )
 
 const (

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -115,4 +116,24 @@ func convertName(name string) string {
 	}
 
 	return cn
+}
+
+// getJsonTag returns the tag string of json.
+func getJsonTag(ci *ColumnInfo) string {
+	return fmt.Sprintf("json:%q", ci.Name)
+}
+
+// getXmlTag returns the tag string of xml.
+func getXmlTag(ci *ColumnInfo) string {
+	return fmt.Sprintf("xml:%q", ci.Name)
+}
+
+// getGormTag returns the tag string of gorm.
+func getGormTag(ci *ColumnInfo) string {
+	return generateTag(ci, "gorm")
+}
+
+// getGoroseTag returns the tag string of gorose.
+func getGoroseTag(ci *ColumnInfo) string {
+	return fmt.Sprintf("gorose:%q", ci.Name)
 }

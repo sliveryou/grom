@@ -55,3 +55,85 @@ func TestConvertName(t *testing.T) {
 		}
 	}
 }
+
+func TestGetJsonTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id"}, "json:\"id\""},
+		{ColumnInfo{Name: "name"}, "json:\"name\""},
+	}
+
+	for _, c := range cases {
+		output := getJsonTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getJsonTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
+func TestGetXmlTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id"}, "xml:\"id\""},
+		{ColumnInfo{Name: "name"}, "xml:\"name\""},
+	}
+
+	for _, c := range cases {
+		output := getXmlTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getXmlTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
+func TestGetGormTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
+			IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id"},
+			"gorm:\"primary_key;column:id;type:bigint(20) auto_increment;comment:'用户id'\""},
+		{ColumnInfo{Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
+			IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
+			Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}}},
+			"gorm:\"column:name;type:varchar(255);not null;index:name_index,name_email_index;default:'user';comment:'用户名称'\""},
+		{ColumnInfo{Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
+			IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
+			Indexes:       []*IndexInfo{{Name: "name_email_index"}},
+			UniqueIndexes: []*IndexInfo{{Name: "email_index"}}},
+			"gorm:\"column:email;type:varchar(255);not null;index:name_email_index;unique_index:email_index;default:'email';comment:'用户邮箱'\""},
+	}
+
+	for _, c := range cases {
+		output := getGormTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getGormTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
+func TestGetGoroseTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id"}, "gorose:\"id\""},
+		{ColumnInfo{Name: "name"}, "gorose:\"name\""},
+	}
+
+	for _, c := range cases {
+		output := getGoroseTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getGoroseTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}

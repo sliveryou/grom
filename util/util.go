@@ -6,6 +6,60 @@ import (
 	"unicode"
 )
 
+// ConvertTable converts mysql table fields to golang model structure by command config.
+func ConvertTable(cc CMDConfig) (string, error) {
+	cis, err := getColumnInfos(&cc)
+	if err != nil {
+		fmt.Println("get column info slice err:", err)
+		return "", err
+	}
+	defer db.Close()
+
+	var fields []*StructField
+
+	for i := range cis {
+		ci := cis[i]
+
+		var tags []string
+
+		if cc.EnableJsonTag {
+			tags = append(tags, getJsonTag(ci))
+		}
+
+		if cc.EnableXmlTag {
+			tags = append(tags, getXmlTag(ci))
+		}
+
+		if cc.EnableGormTag {
+			tags = append(tags, getGormTag(ci))
+		}
+
+		if cc.EnableXormTag {
+			tags = append(tags, getXormTag(ci))
+		}
+
+		if cc.EnableBeegoTag {
+			tags = append(tags, getBeegoTag(ci))
+		}
+
+		if cc.EnableGoroseTag {
+			tags = append(tags, getGoroseTag(ci))
+		}
+
+		field := StructField{
+			Name:    convertName(ci.Name),
+			Type:    convertDataType(ci, &cc),
+			Comment: ci.Comment,
+		}
+		if len(tags) > 0 {
+			field.Tag = fmt.Sprintf("`%s`", strings.Join(tags, " "))
+		}
+		fields = append(fields, &field)
+	}
+
+	return generateCode(&cc, fields)
+}
+
 // convertDataType converts the mysql data type to golang data type.
 func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 	switch ci.DataType {

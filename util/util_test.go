@@ -1,8 +1,46 @@
 package util
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 )
+
+func TestConvertTable(t *testing.T) {
+	config := CMDConfig{
+		DBConfig: DBConfig{
+			Host:     "localhost",
+			Port:     3306,
+			User:     "user",
+			Password: "password",
+			Database: "database",
+			Table:    "table",
+		},
+		EnableFieldComment: true,
+		EnableSqlNull:      false,
+		EnableGureguNull:   false,
+		EnableJsonTag:      true,
+		EnableXmlTag:       false,
+		EnableGormTag:      true,
+		EnableXormTag:      false,
+		EnableBeegoTag:     false,
+		EnableGoroseTag:    false,
+	}
+
+	b, err := json.MarshalIndent(&config, "", "    ")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("\n" + string(b))
+	}
+
+	// s, err := ConvertTable(config)
+	// if err != nil {
+	// 	t.Error(err)
+	// } else {
+	// 	t.Log("\n" + s)
+	// }
+}
 
 func TestConvertDataType(t *testing.T) {
 	cases := []struct {
@@ -221,6 +259,25 @@ func TestGetBeegoType(t *testing.T) {
 		output := getBeegoType(&c.ci)
 		if output != c.expectation {
 			t.Errorf("getBeegoType failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
+func TestUniqueStrings(t *testing.T) {
+	cases := []struct {
+		input       []string
+		expectation []string
+	}{
+		{[]string{"a", "a", "b", "b", "c"}, []string{"a", "b", "c"}},
+		{[]string{"a", "b", "a", "c", "b"}, []string{"a", "b", "c"}},
+		{[]string{"a", "b", "c"}, []string{"a", "b", "c"}},
+	}
+
+	for _, c := range cases {
+		output := uniqueStrings(c.input)
+		if !reflect.DeepEqual(output, c.expectation) {
+			t.Errorf("uniqueStrings failed, expectation:%s, output:%s",
 				c.expectation, output)
 		}
 	}

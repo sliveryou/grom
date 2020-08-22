@@ -148,6 +148,34 @@ func TestGetXormTag(t *testing.T) {
 	}
 }
 
+func TestGetBeegoTag(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{Name: "id", Type: "bigint(20)", DataType: "bigint", Precision: 19,
+			Scale: 0, Length: 0, IsPrimaryKey: true, IsAutoIncrement: true,
+			IsNullable: false, Default: "", Comment: "用户id"},
+			"orm:\"pk;auto;column(id);type(bigint);size(20);description(用户id)\""},
+		{ColumnInfo{Name: "name", Type: "varchar(255)", DataType: "varchar", Precision: 0,
+			Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
+			IsNullable: false, Default: "user", Comment: "用户名称"},
+			"orm:\"column(name);type(varchar);size(255);default(user);description(用户名称)\""},
+		{ColumnInfo{Name: "email", Type: "varchar(255)", DataType: "varchar", Precision: 0,
+			Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
+			IsNullable: false, Default: "email", Comment: "用户邮箱"},
+			"orm:\"column(email);type(varchar);size(255);default(email);description(用户邮箱)\""},
+	}
+
+	for _, c := range cases {
+		output := getBeegoTag(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getBeegoTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
 func TestGetGoroseTag(t *testing.T) {
 	cases := []struct {
 		ci          ColumnInfo
@@ -161,6 +189,38 @@ func TestGetGoroseTag(t *testing.T) {
 		output := getGoroseTag(&c.ci)
 		if output != c.expectation {
 			t.Errorf("getGoroseTag failed, expectation:%s, output:%s",
+				c.expectation, output)
+		}
+	}
+}
+
+func TestGetBeegoType(t *testing.T) {
+	cases := []struct {
+		ci          ColumnInfo
+		expectation string
+	}{
+		{ColumnInfo{DataType: "decimal", Length: 0, Precision: 10, Scale: 2, IsUnsigned: true},
+			";type(decimal unsigned);digits(10);decimals(2)"},
+		{ColumnInfo{DataType: "bigint", Length: 0, Precision: 19, Scale: 0, IsUnsigned: false},
+			";type(bigint);size(20)"},
+		{ColumnInfo{DataType: "varchar", Length: 255, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(varchar);size(255)"},
+		{ColumnInfo{DataType: "longtext", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(text)"},
+		{ColumnInfo{DataType: "date", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(date)"},
+		{ColumnInfo{DataType: "time", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(datetime)"},
+		{ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(longblob)"},
+		{ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(longblob)"},
+	}
+
+	for _, c := range cases {
+		output := getBeegoType(&c.ci)
+		if output != c.expectation {
+			t.Errorf("getBeegoType failed, expectation:%s, output:%s",
 				c.expectation, output)
 		}
 	}

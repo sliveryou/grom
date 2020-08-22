@@ -138,7 +138,39 @@ func getXormTag(ci *ColumnInfo) string {
 	return generateTag(ci, "xorm")
 }
 
+// getBeegoTag returns the tag string of beego orm.
+func getBeegoTag(ci *ColumnInfo) string {
+	return generateTag(ci, "beego")
+}
+
 // getGoroseTag returns the tag string of gorose.
 func getGoroseTag(ci *ColumnInfo) string {
 	return fmt.Sprintf("gorose:%q", ci.Name)
+}
+
+// getBeegoType returns the type tag string of beego orm.
+func getBeegoType(ci *ColumnInfo) string {
+	sign := ""
+	if ci.IsUnsigned {
+		sign = " unsigned"
+	}
+
+	switch ci.DataType {
+	case "float", "double", "real", "decimal", "numeric":
+		return fmt.Sprintf(";type(%s%s);digits(%d);decimals(%d)", ci.DataType, sign, ci.Precision, ci.Scale)
+	case "tinyint", "smallint", "mediumint", "int", "integer", "bigint":
+		return fmt.Sprintf(";type(%s%s);size(%d)", ci.DataType, sign, ci.Precision+1)
+	case "date", "datetime":
+		return fmt.Sprintf(";type(%s)", ci.DataType)
+	case "year", "time", "timestamp":
+		return ";type(datetime)"
+	case "bit", "binary", "varbinary", "char", "varchar":
+		return fmt.Sprintf(";type(%s);size(%d)", ci.DataType, ci.Length)
+	case "tinytext", "text", "mediumtext", "longtext":
+		return ";type(text)"
+	case "json", "enum", "set", "tinyblob", "blob", "mediumblob", "longblob":
+		return fmt.Sprintf(";type(%s)", ci.DataType)
+	default:
+		return fmt.Sprintf(";type(%s)", ci.DataType)
+	}
 }

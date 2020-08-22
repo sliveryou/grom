@@ -32,6 +32,15 @@ const xormTemplate = `xorm:"
 	{{- if .Comment }} comment('{{ .Comment }}'){{ end -}}
 "`
 
+const beegoTemplate = `orm:"
+	{{- if .IsPrimaryKey }}pk;{{ end -}}
+	{{- if .IsAutoIncrement }}auto;{{ end -}}
+	column({{ .Name }}){{ getBeegoType . }}
+	{{- if .IsNullable }};null{{ end -}}
+	{{- if .Default }};default({{ .Default }}){{ end -}}
+	{{- if .Comment }};description({{ .Comment }}){{ end -}}
+"`
+
 func init() {
 	var err error
 	generator, err = template.New("gorm").Parse(gormTemplate)
@@ -41,6 +50,11 @@ func init() {
 	generator, err = generator.New("xorm").Parse(xormTemplate)
 	if err != nil {
 		fmt.Println("parse xorm template err:", err)
+	}
+	generator, err = generator.New("beego").Funcs(
+		template.FuncMap{"getBeegoType": getBeegoType}).Parse(beegoTemplate)
+	if err != nil {
+		fmt.Println("parse beego orm template err:", err)
 	}
 }
 

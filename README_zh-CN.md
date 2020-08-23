@@ -9,20 +9,19 @@
 [![Github Latest Tag](https://img.shields.io/github/tag/sliveryou/grom.svg?style=flat)](https://github.com/sliveryou/grom/tags)
 [![Github Stars](https://img.shields.io/github/stars/sliveryou/grom.svg?style=flat)](https://github.com/sliveryou/grom/stargazers)
 
-Grom 是一个可以将 mysql 的表字段转换为 golang 的模型结构的命令行工具。
-它的全称是 golang relational object mapping（GROM，Golang 关系对象映射）。
+Grom 是一个可以将 mysql 的表字段转换为 golang 的模型结构的命令行工具。它的全称是 golang relational object mapping（GROM，Golang 关系对象映射）。
 
 ## 安装
 
 使用如下命令下载并安装包：
 
-```sh
+```shell script
 $ go get -u github.com/sliveryou/grom
 ```
 
 如果要从源码开始构建的话，需要有 [Go](https://golang.org/dl/) 环境（1.14 及以上版本），并使用如下命令：
 
-```shell
+```shell script
 $ git clone https://github.com/sliveryou/grom.git
 $ cd grom
 $ sh scripts/build.sh
@@ -30,9 +29,9 @@ $ sh scripts/build.sh
 
 或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件。
 
-## grom cli
+## Grom 命令行接口
 
-```sh
+```shell script
 $ grom -h
 利用 mysql 的信息模式获取 golang 的模型结构
 
@@ -148,11 +147,85 @@ $ grom version -h
 
 ## 支持的函数生成规则
 
-|   标签    | 表名 | 表 normal 索引 | 表 unique索引 |
-|-----------|------|----------------|---------------|
-|   json    |   ×  |       ×        |       ×       |
-|   xml     |   ×  |       ×        |       ×       |
-|   gorm    |   √  |       ×        |       ×       |
-|   xorm    |   √  |       ×        |       ×       |
-| beego orm |   √  |       √        |       √       |
-|  gorose   |   √  |       ×        |       ×       |
+|   标签    | 表名函数（TableName） | 表 normal 索引函数（TableIndex） | 表 unique 索引函数（TableUnique） |
+|-----------|-----------------------|----------------------------------|-----------------------------------|
+|   json    |            ×          |                ×                 |                 ×                 |
+|   xml     |            ×          |                ×                 |                 ×                 |
+|   gorm    |            √          |                ×                 |                 ×                 |
+|   xorm    |            √          |                ×                 |                 ×                 |
+| beego orm |            √          |                √                 |                 √                 |
+|  gorose   |            √          |                ×                 |                 ×                 |
+
+## 用法举例
+
+1. 通过以下 sql 语句创建名为 api 的表：
+
+```mysql
+CREATE TABLE `api`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '接口id',
+  `path` varchar(255) NULL DEFAULT NULL COMMENT '接口路径',
+  `description` varchar(255) NULL DEFAULT NULL COMMENT '接口描述',
+  `group` varchar(255) NULL DEFAULT NULL COMMENT '接口属组',
+  `method` varchar(255) NULL DEFAULT 'POST' COMMENT '接口方法',
+  `create_time` bigint(20) NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` bigint(20) NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `path_method`(`path`, `method`),
+  INDEX `group`(`group`)
+) ENGINE = InnoDB AUTO_INCREMENT = 1;
+```
+
+2. 生成并编辑 grom 的配置文件：
+
+```shell script
+$ grom generate -n grom.json 
+$ vim grom.json
+{
+    "host": "localhost",
+    "port": 3306,
+    "user": "user",
+    "password": "password",
+    "database": "database",
+    "table": "api",
+    "package_name": "model",
+    "struct_name": "API",
+    "enable_field_comment": true,
+    "enable_sql_null": false,
+    "enable_guregu_null": false,
+    "enable_json_tag": true,
+    "enable_xml_tag": false,
+    "enable_gorm_tag": true,
+    "enable_xorm_tag": false,
+    "enable_beego_tag": false,
+    "enable_gorose_tag": false
+}
+```
+
+你也可以在命令行中填写参数，而不生成配置文件：
+
+```shell script
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e FIELD_COMMENT,JSON_TAG,GORM_TAG
+```
+
+然后你将会得到生成的代码：
+
+```go
+package model
+
+type API struct {
+        ID          int    `json:"id" gorm:"primary_key;column:id;type:int(11) auto_increment;comment:'接口id'"`                           // 接口id
+        Path        string `json:"path" gorm:"column:path;type:varchar(255);unique_index:path_method;comment:'接口路径'"`                    // 接口路径
+        Description string `json:"description" gorm:"column:description;type:varchar(255);comment:'接口描述'"`                               // 接口描述
+        Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:'接口属组'"`                               // 接口属组
+        Method      string `json:"method" gorm:"column:method;type:varchar(255);unique_index:path_method;default:'POST';comment:'接口方法'"` // 接口方法
+        CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:'创建时间'"`                                 // 创建时间
+        UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:'更新时间'"`                                 // 更新时间
+}
+
+// TableName returns the table name of the API model
+func (a *API) TableName() string {
+        return "api"
+}
+```
+
+3. 尽情享受吧。

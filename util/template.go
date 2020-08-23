@@ -27,7 +27,7 @@ type {{ .StructName }} struct {
 	{{ range .StructFields -}} 
 		{{ .Name }} {{ .Type }} {{ .Tag }} 
 		{{- if and $.EnableFieldComment .Comment }}// {{ .Comment }}{{ end }} 
-	{{ end }}
+	{{ end -}}
 }
 
 {{ if .EnableTableName }}

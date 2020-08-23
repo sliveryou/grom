@@ -16,6 +16,8 @@ func TestConvertTable(t *testing.T) {
 			Database: "database",
 			Table:    "table",
 		},
+		PackageName:        "package_name",
+		StructName:         "struct_name",
 		EnableFieldComment: true,
 		EnableSqlNull:      false,
 		EnableGureguNull:   false,

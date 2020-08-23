@@ -17,7 +17,7 @@ Its full name is golang relational object mapping (GROM).
 Download package by using:
 
 ```shell script
-$ go get github.com/sliveryou/grom
+$ go get -u github.com/sliveryou/grom
 ```
 
 To build from source code, you need [Go environment](https://golang.org/dl/) (1.14 or newer) and use the following commands:

@@ -1,6 +1,12 @@
 build:
 	@sh scripts/build.sh
 
+pkg:
+	@sh scripts/package.sh
+
+clean:
+	@sh scripts/clean.sh
+
 fmt:
 	@find . -name '*.go' -not -path "./vendor/*" | xargs gofmt -s -w
 	@find . -name '*.go' -not -path "./vendor/*" | xargs goimports -w

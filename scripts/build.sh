@@ -2,7 +2,7 @@
 file_path=$(
     cd $(dirname $0)
     pwd
-)/../
+)/..
 
 main_path="github.com/sliveryou/grom/cmd"
 go_version=$(go version | awk '{ print $3 }')

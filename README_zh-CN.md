@@ -199,6 +199,7 @@ $ vim grom.json
     "enable_beego_tag": false,
     "enable_gorose_tag": false
 }
+$ grom convert -n grom.json
 ```
 
 你也可以在命令行中填写参数，而不生成配置文件：

@@ -200,6 +200,7 @@ $ vim grom.json
     "enable_beego_tag": false,
     "enable_gorose_tag": false
 }
+$ grom convert -n grom.json
 ```
 
 You can also fill in the parameters on the command line without generating a configuration file:

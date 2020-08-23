@@ -1,6 +1,9 @@
 build:
 	@sh scripts/build.sh
 
+install:
+	@sh scripts/install.sh
+
 pkg:
 	@sh scripts/package.sh
 

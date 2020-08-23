@@ -25,7 +25,7 @@ To build from source code, you need [Go environment](https://golang.org/dl/) (1.
 ```shell script
 $ git clone https://github.com/sliveryou/grom.git
 $ cd grom
-$ sh scripts/build.sh
+$ sh scripts/install.sh
 ```
 
 Or download a pre-compiled binary from the [release page](https://github.com/sliveryou/grom/releases).

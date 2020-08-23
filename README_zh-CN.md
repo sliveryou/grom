@@ -24,7 +24,7 @@ $ go get -u github.com/sliveryou/grom
 ```shell script
 $ git clone https://github.com/sliveryou/grom.git
 $ cd grom
-$ sh scripts/build.sh
+$ sh scripts/install.sh
 ```
 
 或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件。

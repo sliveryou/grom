@@ -56,23 +56,23 @@ $ grom -h
 $ grom generate -h
 将会生成如下的 grom 配置文件：
 {
-    "host": "localhost",
-    "port": 3306,
-    "user": "user",
-    "password": "password",
-    "database": "database",
-    "table": "table",
-    "package_name": "package_name",
-    "struct_name": "struct_name",
-    "enable_field_comment": true,
-    "enable_sql_null": false,
-    "enable_guregu_null": false,
-    "enable_json_tag": true,
-    "enable_xml_tag": false,
-    "enable_gorm_tag": true,
-    "enable_xorm_tag": false,
-    "enable_beego_tag": false,
-    "enable_gorose_tag": false
+    "host": "localhost",            // 将要连接的 mysql 主机
+    "port": 3306,                   // 将要连接的 mysql 端口
+    "user": "user",                 // 将要连接的 mysql 用户
+    "password": "password",         // 将要连接的 mysql 密码 
+    "database": "database",         // 将要连接的 mysql 数据库
+    "table": "table",               // 将要连接的 mysql 数据表
+    "package_name": "package_name", // 转换后的模型结构的包名称
+    "struct_name": "struct_name",   // 转换后的模型结构的结构体名称
+    "enable_field_comment": true,   // 是否启用字段注释
+    "enable_sql_null": false,       // 是否启用 sql.Null 类型
+    "enable_guregu_null": false,    // 是否启用 null.Null 类型
+    "enable_json_tag": true,        // 是否启用 json 标签
+    "enable_xml_tag": false,        // 是否启用 xml 标签
+    "enable_gorm_tag": true,        // 是否启用 gorm 标签
+    "enable_xorm_tag": false,       // 是否启用 xorm 标签
+    "enable_beego_tag": false,      // 是否启用 beego orm 标签
+    "enable_gorose_tag": false      // 是否启用 gorose 标签
 }
 
 用法:

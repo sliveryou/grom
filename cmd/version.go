@@ -8,10 +8,10 @@ import (
 
 var (
 	projectName    = "Grom"
-	projectVersion = "1.0.0"
+	projectVersion = "1.0.1"
 	goVersion      = "go1.14.3"
-	gitCommit      = "a3fc79cf28"
-	buildTime      = "2020-08-23 16:27:10"
+	gitCommit      = "940cbeb0f2"
+	buildTime      = "2020-08-25 10:25:11"
 )
 
 var versionCmd = &cobra.Command{

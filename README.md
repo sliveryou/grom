@@ -163,17 +163,17 @@ Tags:
 1. Create the table named api by following sql: 
 
 ```mysql
-CREATE TABLE `api`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '接口id',
-  `path` varchar(255) NULL DEFAULT NULL COMMENT '接口路径',
-  `description` varchar(255) NULL DEFAULT NULL COMMENT '接口描述',
-  `group` varchar(255) NULL DEFAULT NULL COMMENT '接口属组',
-  `method` varchar(255) NULL DEFAULT 'POST' COMMENT '接口方法',
-  `create_time` bigint(20) NULL DEFAULT NULL COMMENT '创建时间',
-  `update_time` bigint(20) NULL DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `path_method`(`path`, `method`),
-  INDEX `group`(`group`)
+CREATE TABLE `api` (
+    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '接口id',
+    `path` varchar(255) NULL DEFAULT NULL COMMENT '接口路径',
+    `description` varchar(255) NULL DEFAULT NULL COMMENT '接口描述',
+    `group` varchar(255) NULL DEFAULT NULL COMMENT '接口属组',
+    `method` varchar(255) NULL DEFAULT 'POST' COMMENT '接口方法',
+    `create_time` bigint(20) NULL DEFAULT NULL COMMENT '创建时间',
+    `update_time` bigint(20) NULL DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `path_method`(`path`, `method`),
+    INDEX `group`(`group`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1;
 ```
 
@@ -217,18 +217,18 @@ Then you will get the generated code:
 package model
 
 type API struct {
-        ID          int    `json:"id" gorm:"primary_key;column:id;type:int(11) auto_increment;comment:'接口id'"`                           // 接口id
-        Path        string `json:"path" gorm:"column:path;type:varchar(255);unique_index:path_method;comment:'接口路径'"`                    // 接口路径
-        Description string `json:"description" gorm:"column:description;type:varchar(255);comment:'接口描述'"`                               // 接口描述
-        Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:'接口属组'"`                               // 接口属组
-        Method      string `json:"method" gorm:"column:method;type:varchar(255);unique_index:path_method;default:'POST';comment:'接口方法'"` // 接口方法
-        CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:'创建时间'"`                                 // 创建时间
-        UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:'更新时间'"`                                 // 更新时间
+    ID          int    `json:"id" gorm:"primary_key;column:id;type:int(11) auto_increment;comment:'接口id'"`                           // 接口id
+    Path        string `json:"path" gorm:"column:path;type:varchar(255);unique_index:path_method;comment:'接口路径'"`                    // 接口路径
+    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:'接口描述'"`                               // 接口描述
+    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:'接口属组'"`                               // 接口属组
+    Method      string `json:"method" gorm:"column:method;type:varchar(255);unique_index:path_method;default:'POST';comment:'接口方法'"` // 接口方法
+    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:'创建时间'"`                                 // 创建时间
+    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:'更新时间'"`                                 // 更新时间
 }
 
 // TableName returns the table name of the API model
 func (a *API) TableName() string {
-        return "api"
+    return "api"
 }
 ```
 

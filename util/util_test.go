@@ -76,22 +76,29 @@ func TestConvertDataType(t *testing.T) {
 func TestConvertName(t *testing.T) {
 	cases := []struct {
 		input       string
+		enable      bool
 		expectation string
 	}{
-		{"api", "API"},
-		{"url", "URL"},
-		{"test", "Test"},
-		{"user_name", "UserName"},
-		{"USER_PASSWORD", "UserPassword"},
-		{"测试", "测试"},
-		{"用户_名称", "用户名称"},
+		{"api", true, "API"},
+		{"url", true, "URL"},
+		{"api", false, "Api"},
+		{"url", false, "Url"},
+		{"test", true, "Test"},
+		{"user_name", true, "UserName"},
+		{"USER_PASSWORD", true, "UserPassword"},
+		{"测试", true, "测试"},
+		{"用户_名称", true, "用户名称"},
+		{"user_name", false, "UserName"},
+		{"USER_PASSWORD", false, "UserPassword"},
+		{"测试", false, "测试"},
+		{"用户_名称", false, "用户名称"},
 	}
 
 	for _, c := range cases {
-		output := convertName(c.input)
+		output := convertName(c.input, c.enable)
 		if output != c.expectation {
-			t.Errorf("convertName failed, input:%s, expectation:%s, output:%s",
-				c.input, c.expectation, output)
+			t.Errorf("convertName failed, input:%s, enable:%v, expectation:%s, output:%s",
+				c.input, c.enable, c.expectation, output)
 		}
 	}
 }

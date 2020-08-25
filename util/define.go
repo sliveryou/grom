@@ -4,6 +4,7 @@ import (
 	"database/sql"
 )
 
+// Global variables.
 var (
 	db *sql.DB
 
@@ -13,7 +14,8 @@ var (
 	tableIndexes []string
 	tableUniques []string
 
-	abbreviation = map[string]struct{}{
+	commonInitialisms = map[string]struct{}{
+		"ACL":   {},
 		"API":   {},
 		"ASCII": {},
 		"CPU":   {},
@@ -34,9 +36,12 @@ var (
 		"RPC":   {},
 		"SLA":   {},
 		"SMTP":  {},
+		"SQL":   {},
 		"SSH":   {},
+		"TCP":   {},
 		"TLS":   {},
 		"TTL":   {},
+		"UDP":   {},
 		"UI":    {},
 		"UID":   {},
 		"UUID":  {},
@@ -45,6 +50,7 @@ var (
 		"UTF8":  {},
 		"VM":    {},
 		"XML":   {},
+		"XMPP":  {},
 		"XSRF":  {},
 		"XSS":   {},
 	}
@@ -60,6 +66,7 @@ const (
 	indexNormal = 1
 )
 
+// Global data type constants.
 const (
 	gureguNullString = "null.String"
 	gureguNullInt    = "null.Int"
@@ -93,6 +100,7 @@ type CMDConfig struct {
 	DBConfig
 	PackageName        string `json:"package_name"`
 	StructName         string `json:"struct_name"`
+	EnableInitialism   bool   `json:"enable_initialism"`
 	EnableFieldComment bool   `json:"enable_field_comment"`
 	EnableSqlNull      bool   `json:"enable_sql_null"`
 	EnableGureguNull   bool   `json:"enable_guregu_null"`

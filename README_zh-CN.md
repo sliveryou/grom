@@ -64,6 +64,7 @@ $ grom generate -h
     "table": "table",               // 将要连接的 mysql 数据表
     "package_name": "package_name", // 转换后的模型结构的包名称
     "struct_name": "struct_name",   // 转换后的模型结构的结构体名称
+    "enable_initialism": true,      // 是否开启常用缩写词映射
     "enable_field_comment": true,   // 是否启用字段注释
     "enable_sql_null": false,       // 是否启用 sql.Null 类型
     "enable_guregu_null": false,    // 是否启用 null.Null 类型
@@ -93,11 +94,11 @@ $ grom convert -h
 
 例子:
   grom convert -n ./grom.json
-  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
+  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
 
 标记:
   -d, --database string   将要连接的 mysql 数据库
-  -e, --enable strings    启用的服务（必须包含在 [FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG] 之中）
+  -e, --enable strings    启用的服务（必须包含在 [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG] 之中）
   -h, --help              获取有关 convert 命令的帮助
   -H, --host string       将要连接的 mysql 主机
   -n, --name string       指定的 grom 配置文件的名称
@@ -189,6 +190,7 @@ $ vim grom.json
     "table": "api",
     "package_name": "model",
     "struct_name": "API",
+    "enable_initialism": true,
     "enable_field_comment": true,
     "enable_sql_null": false,
     "enable_guregu_null": false,
@@ -205,7 +207,7 @@ $ grom convert -n grom.json
 你也可以在命令行中填写参数，而不生成配置文件：
 
 ```shell script
-$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e FIELD_COMMENT,JSON_TAG,GORM_TAG
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG
 ```
 
 然后你将会得到生成的代码：

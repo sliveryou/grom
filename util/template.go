@@ -120,7 +120,7 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 	}
 
 	if cc.StructName == "" {
-		cc.StructName = convertName(cc.Table)
+		cc.StructName = convertName(cc.Table, cc.EnableInitialism)
 	}
 
 	buffer := &bytes.Buffer{}

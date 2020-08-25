@@ -47,7 +47,7 @@ func ConvertTable(cc CMDConfig) (string, error) {
 		}
 
 		field := StructField{
-			Name:    convertName(ci.Name),
+			Name:    convertName(ci.Name, cc.EnableInitialism),
 			Type:    convertDataType(ci, &cc),
 			Comment: ci.Comment,
 		}
@@ -143,9 +143,14 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 }
 
 // convertName converts the name to camel case name.
-func convertName(name string) string {
+func convertName(name string, enableInitialism ...bool) string {
 	if name == "" {
 		return ""
+	}
+
+	enable := false
+	if len(enableInitialism) != 0 {
+		enable = enableInitialism[0]
 	}
 
 	var cn string
@@ -153,7 +158,7 @@ func convertName(name string) string {
 
 	for _, v := range s {
 		upperV := strings.ToUpper(v)
-		if _, ok := abbreviation[upperV]; ok {
+		if _, ok := commonInitialisms[upperV]; ok && enable {
 			cn += upperV
 		} else {
 			if runesV := []rune(v); len(runesV) > 0 {

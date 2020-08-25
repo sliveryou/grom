@@ -58,6 +58,7 @@ func generateFileInfo() string {
 		},
 		PackageName:        "package_name",
 		StructName:         "struct_name",
+		EnableInitialism:   true,
 		EnableFieldComment: true,
 		EnableSqlNull:      false,
 		EnableGureguNull:   false,

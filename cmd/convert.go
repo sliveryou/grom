@@ -24,7 +24,8 @@ var (
 	table       string
 	enable      []string
 
-	validServiceMap = map[string]struct{}{
+	validServices = map[string]struct{}{
+		"INITIALISM":    {},
 		"FIELD_COMMENT": {},
 		"SQL_NULL":      {},
 		"GUREGU_NULL":   {},
@@ -42,7 +43,7 @@ var convertCmd = &cobra.Command{
 	Short: "Convert mysql table fields to golang model structure",
 	Long:  "Convert mysql table fields to golang model structure by information_schema.columns and information_schema.statistics",
 	Example: "  grom convert -n ./grom.json\n" +
-		"  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME",
+		"  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME",
 	Run: convertFunc,
 }
 
@@ -56,7 +57,7 @@ func init() {
 	convertCmd.Flags().StringVarP(&password, "password", "p", "", "the password of mysql")
 	convertCmd.Flags().StringVarP(&database, "database", "d", "", "the database of mysql")
 	convertCmd.Flags().StringVarP(&table, "table", "t", "", "the table of mysql")
-	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])")
+	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])")
 
 	rootCmd.AddCommand(convertCmd)
 }
@@ -120,13 +121,15 @@ func getCmdConfig() (util.CMDConfig, error) {
 	if len(enable) != 0 {
 		for _, v := range enable {
 			service := strings.ToUpper(v)
-			if _, ok := validServiceMap[service]; !ok {
+			if _, ok := validServices[service]; !ok {
 				err := errors.New("enabled service is invalid, service: " + service)
 				fmt.Println(err)
 				return util.CMDConfig{}, err
 			}
 
 			switch service {
+			case "INITIALISM":
+				config.EnableInitialism = true
 			case "FIELD_COMMENT":
 				config.EnableFieldComment = true
 			case "SQL_NULL":

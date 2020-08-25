@@ -65,6 +65,7 @@ Generate grom configuration file like this:
     "table": "table",
     "package_name": "package_name",
     "struct_name": "struct_name",
+    "enable_initialism": true,
     "enable_field_comment": true,
     "enable_sql_null": false,
     "enable_guregu_null": false,
@@ -94,11 +95,11 @@ Usage:
 
 Examples:
   grom convert -n ./grom.json
-  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
+  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
 
 Flags:
   -d, --database string   the database of mysql
-  -e, --enable strings    enable services (must in [FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])
+  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])
   -h, --help              help for convert
   -H, --host string       the host of mysql
   -n, --name string       the name of the grom configuration file
@@ -190,6 +191,7 @@ $ vim grom.json
     "table": "api",
     "package_name": "model",
     "struct_name": "API",
+    "enable_initialism": true,
     "enable_field_comment": true,
     "enable_sql_null": false,
     "enable_guregu_null": false,
@@ -206,7 +208,7 @@ $ grom convert -n grom.json
 You can also fill in the parameters on the command line without generating a configuration file:
 
 ```shell script
-$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e FIELD_COMMENT,JSON_TAG,GORM_TAG
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG
 ```
 
 Then you will get the generated code:

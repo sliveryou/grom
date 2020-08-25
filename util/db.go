@@ -95,7 +95,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 	}
 
 	if c.EnableBeegoTag {
-		tableIndexes, tableUniques = getTableIndexes(indexInfos)
+		tableIndexes, tableUniques = getTableIndexes(indexInfos, c.EnableInitialism)
 	}
 
 	return columnInfos, nil
@@ -176,12 +176,12 @@ func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnInde
 }
 
 // getTableIndexes returns the details of table indexes and table unique indexes.
-func getTableIndexes(indexInfos []*IndexInfo) (tableIndexes []string, tableUniques []string) {
+func getTableIndexes(indexInfos []*IndexInfo, enableInitialism ...bool) (tableIndexes []string, tableUniques []string) {
 	tableIndexMap, tableUniqueMap := make(map[string][]string), make(map[string][]string)
 
 	for i := range indexInfos {
 		indexInfo := indexInfos[i]
-		columnName := fmt.Sprintf("%q", convertName(indexInfo.ColumnName))
+		columnName := fmt.Sprintf("%q", convertName(indexInfo.ColumnName, enableInitialism...))
 		if indexInfo.IsUnique {
 			uniqueIndexes := tableUniqueMap[indexInfo.Name]
 			uniqueIndexes = append(uniqueIndexes, columnName)

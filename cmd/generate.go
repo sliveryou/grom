@@ -64,10 +64,11 @@ func generateFileInfo() string {
 		EnableGureguNull:   false,
 		EnableJsonTag:      true,
 		EnableXmlTag:       false,
-		EnableGormTag:      true,
+		EnableGormTag:      false,
 		EnableXormTag:      false,
 		EnableBeegoTag:     false,
 		EnableGoroseTag:    false,
+		EnableGormV2Tag:    true,
 	}
 
 	b, _ := json.MarshalIndent(&c, "", "    ")

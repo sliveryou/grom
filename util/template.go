@@ -92,6 +92,18 @@ const beegoTemplate = `orm:"
 	{{- if .Comment }};description({{ .Comment }}){{ end -}}
 "`
 
+const gormV2Template = `gorm:"
+	{{- if .IsPrimaryKey }}primaryKey;{{ end -}}
+	column:{{ .Name }};type:{{ .Type }}{{ if .IsAutoIncrement }} auto_increment{{ end }}
+	{{- if or .IsNullable .IsPrimaryKey | not }};not null{{ end -}}
+	{{- range $i, $v := .Indexes }}
+		{{- if eq $i 0 }};index:{{ $v.Name }}{{ else }},{{ $v.Name }}{{ end }}{{ end -}}
+	{{- range $i, $v := .UniqueIndexes }}
+		{{- if eq $i 0 }};uniqueIndex:{{ $v.Name }}{{ else }},{{ $v.Name }}{{ end }}{{ end -}}
+	{{- if .Default }};default:{{ .Default }}{{ end -}}
+	{{- if .Comment }};comment:{{ .Comment }}{{ end -}}
+"`
+
 func init() {
 	var err error
 	generator, err = template.New("out").Parse(outTemplate)
@@ -110,6 +122,10 @@ func init() {
 		template.FuncMap{"getBeegoType": getBeegoType}).Parse(beegoTemplate)
 	if err != nil {
 		fmt.Println("parse beego orm template err:", err)
+	}
+	generator, err = generator.New("gormV2").Parse(gormV2Template)
+	if err != nil {
+		fmt.Println("parse gormV2 template err:", err)
 	}
 }
 
@@ -149,7 +165,7 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 		EnableFieldComment: cc.EnableFieldComment,
 		EnableSqlNull:      cc.EnableSqlNull,
 		EnableGureguNull:   cc.EnableGureguNull,
-		EnableTableName:    cc.EnableGormTag || cc.EnableXormTag || cc.EnableBeegoTag || cc.EnableGoroseTag,
+		EnableTableName:    cc.EnableGormTag || cc.EnableXormTag || cc.EnableBeegoTag || cc.EnableGoroseTag || cc.EnableGormV2Tag,
 		EnableTableIndex:   cc.EnableBeegoTag && len(tableIndexes) != 0,
 		EnableTableUnique:  cc.EnableBeegoTag && len(tableUniques) != 0,
 	})

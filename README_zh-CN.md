@@ -70,10 +70,11 @@ $ grom generate -h
     "enable_guregu_null": false,    // 是否启用 null.Null 类型
     "enable_json_tag": true,        // 是否启用 json 标签
     "enable_xml_tag": false,        // 是否启用 xml 标签
-    "enable_gorm_tag": true,        // 是否启用 gorm 标签
+    "enable_gorm_tag": false,       // 是否启用 gorm v1 标签
     "enable_xorm_tag": false,       // 是否启用 xorm 标签
     "enable_beego_tag": false,      // 是否启用 beego orm 标签
-    "enable_gorose_tag": false      // 是否启用 gorose 标签
+    "enable_gorose_tag": false,     // 是否启用 gorose 标签
+    "enable_gorm_v2_tag": true      // 是否启用 gorm v2 标签
 }
 
 用法:
@@ -94,11 +95,11 @@ $ grom convert -h
 
 例子:
   grom convert -n ./grom.json
-  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
+  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG --package PACKAGE_NAME --struct STRUCT_NAME
 
 标记:
   -d, --database string   将要连接的 mysql 数据库
-  -e, --enable strings    启用的服务（必须包含在 [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG] 之中）
+  -e, --enable strings    启用的服务（必须包含在 [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG] 之中）
   -h, --help              获取有关 convert 命令的帮助
   -H, --host string       将要连接的 mysql 主机
   -n, --name string       指定的 grom 配置文件的名称
@@ -130,32 +131,35 @@ $ grom version -h
 
 - [x] json
 - [x] xml
-- [x] [gorm](https://gorm.io/zh_CN/docs/models.html)
+- [x] [gorm v1](https://v1.gorm.io/zh_CN/docs/models.html)
 - [x] [xorm](https://gobook.io/read/gitea.com/xorm/manual-zh-CN/chapter-02/4.columns.html)
 - [x] [beego orm](https://beego.me/docs/mvc/model/models.md)
 - [x] [gorose](https://www.kancloud.cn/fizz/gorose-2/1135839)
+- [x] [gorm v2](https://gorm.io/zh_CN/docs/models.html)
 
 ## 支持的标签生成规则
 
-|   标签    | 主键 | 自增 | 列名 | 类型 | 是否为 null | normal 索引 | unique 索引 | 默认值 | 注释 | 外键 |
+| 标签      | 主键 | 自增 | 列名 | 类型 | 是否为 null | normal 索引 | unique 索引 | 默认值 | 注释 | 外键 |
 |-----------|------|------|------|------|-------------|-------------|-------------|--------|------|------|
-|   json    |   ×  |  ×   |  √   |  ×   |      ×      |      ×      |      ×      |    ×   |  ×   |  ×   |
-|   xml     |   ×  |  ×   |  √   |  ×   |      ×      |      ×      |      ×      |    ×   |  ×   |  ×   |
-|   gorm    |   √  |  √   |  √   |  √   |      √      |      √      |      √      |    √   |  √   |  ×   |
-|   xorm    |   √  |  √   |  √   |  √   |      √      |      √      |      √      |    √   |  √   |  ×   |
-| beego orm |   √  |  √   |  √   |  √   |      √      |      ×      |      ×      |    √   |  √   |  ×   |
-|  gorose   |   ×  |  ×   |  √   |  ×   |      ×      |      ×      |      ×      |    ×   |  ×   |  ×   |
+| json      | ×    | ×    | √    | ×    | ×           | ×           | ×           | ×      | ×    | ×    |
+| xml       | ×    | ×    | √    | ×    | ×           | ×           | ×           | ×      | ×    | ×    |
+| gorm v1   | √    | √    | √    | √    | √           | √           | √           | √      | √    | ×    |
+| xorm      | √    | √    | √    | √    | √           | √           | √           | √      | √    | ×    |
+| beego orm | √    | √    | √    | √    | √           | ×           | ×           | √      | √    | ×    |
+| gorose    | ×    | ×    | √    | ×    | ×           | ×           | ×           | ×      | ×    | ×    |
+| gorm v2   | √    | √    | √    | √    | √           | √           | √           | √      | √    | ×    |
 
 ## 支持的函数生成规则
 
-|   标签    | 表名函数（TableName） | 表 normal 索引函数（TableIndex） | 表 unique 索引函数（TableUnique） |
+| 标签      | 表名函数（TableName） | 表 normal 索引函数（TableIndex） | 表 unique 索引函数（TableUnique） |
 |-----------|-----------------------|----------------------------------|-----------------------------------|
-|   json    |            ×          |                ×                 |                 ×                 |
-|   xml     |            ×          |                ×                 |                 ×                 |
-|   gorm    |            √          |                ×                 |                 ×                 |
-|   xorm    |            √          |                ×                 |                 ×                 |
-| beego orm |            √          |                √                 |                 √                 |
-|  gorose   |            √          |                ×                 |                 ×                 |
+| json      | ×                     | ×                                | ×                                 |
+| xml       | ×                     | ×                                | ×                                 |
+| gorm v1   | √                     | ×                                | ×                                 |
+| xorm      | √                     | ×                                | ×                                 |
+| beego orm | √                     | √                                | √                                 |
+| gorose    | √                     | ×                                | ×                                 |
+| gorm v2   | √                     | ×                                | ×                                 |
 
 ## 用法举例
 
@@ -196,10 +200,11 @@ $ vim grom.json
     "enable_guregu_null": false,
     "enable_json_tag": true,
     "enable_xml_tag": false,
-    "enable_gorm_tag": true,
+    "enable_gorm_tag": false,
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
-    "enable_gorose_tag": false
+    "enable_gorose_tag": false,
+    "enable_gorm_v2_tag": true
 }
 $ grom convert -n grom.json
 ```
@@ -207,7 +212,7 @@ $ grom convert -n grom.json
 你也可以在命令行中填写参数，而不生成配置文件：
 
 ```shell script
-$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG
 ```
 
 然后你将会得到生成的代码：
@@ -216,13 +221,13 @@ $ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e IN
 package model
 
 type API struct {
-    ID          int    `json:"id" gorm:"primary_key;column:id;type:int(11) auto_increment;comment:'接口id'"`                           // 接口id
-    Path        string `json:"path" gorm:"column:path;type:varchar(255);unique_index:path_method;comment:'接口路径'"`                    // 接口路径
-    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:'接口描述'"`                               // 接口描述
-    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:'接口属组'"`                               // 接口属组
-    Method      string `json:"method" gorm:"column:method;type:varchar(255);unique_index:path_method;default:'POST';comment:'接口方法'"` // 接口方法
-    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:'创建时间'"`                                 // 创建时间
-    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:'更新时间'"`                                 // 更新时间
+    ID          int    `json:"id" gorm:"primaryKey;column:id;type:int(11) auto_increment;comment:接口id"`                           // 接口id
+    Path        string `json:"path" gorm:"column:path;type:varchar(255);uniqueIndex:path_method;comment:接口路径"`                  // 接口路径
+    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:接口描述"`                            // 接口描述
+    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:接口属组"`                            // 接口属组
+    Method      string `json:"method" gorm:"column:method;type:varchar(255);uniqueIndex:path_method;default:POST;comment:接口方法"` // 接口方法
+    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:创建时间"`                              // 创建时间
+    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:更新时间"`                              // 更新时间
 }
 
 // TableName returns the table name of the API model

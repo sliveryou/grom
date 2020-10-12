@@ -71,10 +71,11 @@ Generate grom configuration file like this:
     "enable_guregu_null": false,
     "enable_json_tag": true,
     "enable_xml_tag": false,
-    "enable_gorm_tag": true,
+    "enable_gorm_tag": false,
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
-    "enable_gorose_tag": false
+    "enable_gorose_tag": false,
+    "enable_gorm_v2_tag": true
 }
 
 Usage:
@@ -95,11 +96,11 @@ Usage:
 
 Examples:
   grom convert -n ./grom.json
-  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME
+  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG --package PACKAGE_NAME --struct STRUCT_NAME
 
 Flags:
   -d, --database string   the database of mysql
-  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])
+  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])
   -h, --help              help for convert
   -H, --host string       the host of mysql
   -n, --name string       the name of the grom configuration file
@@ -131,32 +132,35 @@ Tags:
 
 - [x] json
 - [x] xml
-- [x] [gorm](https://gorm.io/docs/models.html)
+- [x] [gorm v1](https://v1.gorm.io/docs/models.html)
 - [x] [xorm](https://gobook.io/read/gitea.com/xorm/manual-en-US/chapter-02/4.columns.html)
 - [x] [beego orm](https://beego.me/docs/mvc/model/models.md)
 - [x] [gorose](https://www.kancloud.cn/fizz/gorose-2/1135839)
+- [x] [gorm v2](https://gorm.io/docs/models.html)
 
 ## Supported Tag Generation Rules
 
-|    Tag    | PrimaryKey | AutoIncrement | ColumnName | Type | IsNullable | Indexes | Uniques | Default | Comment | ForeignKey |
+| Tag       | PrimaryKey | AutoIncrement | ColumnName | Type | IsNullable | Indexes | Uniques | Default | Comment | ForeignKey |
 |-----------|------------|---------------|------------|------|------------|---------|---------|---------|---------|------------|
-|   json    |      ×     |       ×       |      √     |  ×   |      ×     |    ×    |    ×    |    ×    |    ×    |      ×     |
-|   xml     |      ×     |       ×       |      √     |  ×   |      ×     |    ×    |    ×    |    ×    |    ×    |      ×     |
-|   gorm    |      √     |       √       |      √     |  √   |      √     |    √    |    √    |    √    |    √    |      ×     |
-|   xorm    |      √     |       √       |      √     |  √   |      √     |    √    |    √    |    √    |    √    |      ×     |
-| beego orm |      √     |       √       |      √     |  √   |      √     |    ×    |    ×    |    √    |    √    |      ×     |
-|  gorose   |      ×     |       ×       |      √     |  ×   |      ×     |    ×    |    ×    |    ×    |    ×    |      ×     |
+| json      | ×          | ×             | √          | ×    | ×          | ×       | ×       | ×       | ×       | ×          |
+| xml       | ×          | ×             | √          | ×    | ×          | ×       | ×       | ×       | ×       | ×          |
+| gorm v1   | √          | √             | √          | √    | √          | √       | √       | √       | √       | ×          |
+| xorm      | √          | √             | √          | √    | √          | √       | √       | √       | √       | ×          |
+| beego orm | √          | √             | √          | √    | √          | ×       | ×       | √       | √       | ×          |
+| gorose    | ×          | ×             | √          | ×    | ×          | ×       | ×       | ×       | ×       | ×          |
+| gorm v2   | √          | √             | √          | √    | √          | √       | √       | √       | √       | ×          |
 
 ## Supported Function Generation Rules
 
-|    Tag    | TableName | TableIndex | TableUnique |
+| Tag       | TableName | TableIndex | TableUnique |
 |-----------|-----------|------------|-------------|
-|   json    |     ×     |     ×      |      ×      |
-|   xml     |     ×     |     ×      |      ×      |
-|   gorm    |     √     |     ×      |      ×      |
-|   xorm    |     √     |     ×      |      ×      |
-| beego orm |     √     |     √      |      √      |
-|  gorose   |     √     |     ×      |      ×      |
+| json      | ×         | ×          | ×           |
+| xml       | ×         | ×          | ×           |
+| gorm v1   | √         | ×          | ×           |
+| xorm      | √         | ×          | ×           |
+| beego orm | √         | √          | √           |
+| gorose    | √         | ×          | ×           |
+| gorm v2   | √         | ×          | ×           |
 
 ## Usage Example
 
@@ -197,10 +201,11 @@ $ vim grom.json
     "enable_guregu_null": false,
     "enable_json_tag": true,
     "enable_xml_tag": false,
-    "enable_gorm_tag": true,
+    "enable_gorm_tag": false,
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
-    "enable_gorose_tag": false
+    "enable_gorose_tag": false,
+    "enable_gorm_v2_tag": true
 }
 $ grom convert -n grom.json
 ```
@@ -208,7 +213,7 @@ $ grom convert -n grom.json
 You can also fill in the parameters on the command line without generating a configuration file:
 
 ```shell script
-$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG
 ```
 
 Then you will get the generated code:
@@ -217,13 +222,13 @@ Then you will get the generated code:
 package model
 
 type API struct {
-    ID          int    `json:"id" gorm:"primary_key;column:id;type:int(11) auto_increment;comment:'接口id'"`                           // 接口id
-    Path        string `json:"path" gorm:"column:path;type:varchar(255);unique_index:path_method;comment:'接口路径'"`                    // 接口路径
-    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:'接口描述'"`                               // 接口描述
-    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:'接口属组'"`                               // 接口属组
-    Method      string `json:"method" gorm:"column:method;type:varchar(255);unique_index:path_method;default:'POST';comment:'接口方法'"` // 接口方法
-    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:'创建时间'"`                                 // 创建时间
-    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:'更新时间'"`                                 // 更新时间
+    ID          int    `json:"id" gorm:"primaryKey;column:id;type:int(11) auto_increment;comment:接口id"`                           // 接口id
+    Path        string `json:"path" gorm:"column:path;type:varchar(255);uniqueIndex:path_method;comment:接口路径"`                  // 接口路径
+    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:接口描述"`                            // 接口描述
+    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:接口属组"`                            // 接口属组
+    Method      string `json:"method" gorm:"column:method;type:varchar(255);uniqueIndex:path_method;default:POST;comment:接口方法"` // 接口方法
+    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:创建时间"`                              // 创建时间
+    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:更新时间"`                              // 更新时间
 }
 
 // TableName returns the table name of the API model

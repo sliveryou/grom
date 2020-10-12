@@ -46,6 +46,10 @@ func ConvertTable(cc CMDConfig) (string, error) {
 			tags = append(tags, getGoroseTag(ci))
 		}
 
+		if cc.EnableGormV2Tag && !cc.EnableGormTag {
+			tags = append(tags, getGormV2Tag(ci))
+		}
+
 		field := StructField{
 			Name:    convertName(ci.Name, cc.EnableInitialism),
 			Type:    convertDataType(ci, &cc),
@@ -205,6 +209,11 @@ func getBeegoTag(ci *ColumnInfo) string {
 // getGoroseTag returns the tag string of gorose.
 func getGoroseTag(ci *ColumnInfo) string {
 	return fmt.Sprintf("gorose:%q", ci.Name)
+}
+
+// getGormV2Tag returns the tag string of gorm v2.
+func getGormV2Tag(ci *ColumnInfo) string {
+	return generateTag(ci, "gormV2")
 }
 
 // getBeegoType returns the type tag string of beego orm.

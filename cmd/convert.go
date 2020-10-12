@@ -35,6 +35,7 @@ var (
 		"XORM_TAG":      {},
 		"BEEGO_TAG":     {},
 		"GOROSE_TAG":    {},
+		"GORM_V2_TAG":   {},
 	}
 )
 
@@ -43,7 +44,7 @@ var convertCmd = &cobra.Command{
 	Short: "Convert mysql table fields to golang model structure",
 	Long:  "Convert mysql table fields to golang model structure by information_schema.columns and information_schema.statistics",
 	Example: "  grom convert -n ./grom.json\n" +
-		"  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_TAG --package PACKAGE_NAME --struct STRUCT_NAME",
+		"  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG --package PACKAGE_NAME --struct STRUCT_NAME",
 	Run: convertFunc,
 }
 
@@ -57,7 +58,7 @@ func init() {
 	convertCmd.Flags().StringVarP(&password, "password", "p", "", "the password of mysql")
 	convertCmd.Flags().StringVarP(&database, "database", "d", "", "the database of mysql")
 	convertCmd.Flags().StringVarP(&table, "table", "t", "", "the table of mysql")
-	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG])")
+	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])")
 
 	rootCmd.AddCommand(convertCmd)
 }
@@ -148,6 +149,8 @@ func getCmdConfig() (util.CMDConfig, error) {
 				config.EnableBeegoTag = true
 			case "GOROSE_TAG":
 				config.EnableGoroseTag = true
+			case "GORM_V2_TAG":
+				config.EnableGormV2Tag = true
 			}
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,16 +14,17 @@ import (
 )
 
 var (
-	filePath    string
-	packageName string
-	structName  string
-	host        string
-	port        int
-	user        string
-	password    string
-	database    string
-	table       string
-	enable      []string
+	filePath       string
+	outputFilePath string
+	packageName    string
+	structName     string
+	host           string
+	port           int
+	user           string
+	password       string
+	database       string
+	table          string
+	enable         []string
 
 	validServices = map[string]struct{}{
 		"INITIALISM":    {},
@@ -52,6 +54,7 @@ func init() {
 	convertCmd.Flags().StringVar(&packageName, "package", "", "the package name of the converted model structure")
 	convertCmd.Flags().StringVar(&structName, "struct", "", "the struct name of the converted model structure")
 	convertCmd.Flags().StringVarP(&filePath, "name", "n", "", "the name of the grom configuration file")
+	convertCmd.Flags().StringVarP(&outputFilePath, "output-file-name", "o", "", "the name of the grom output file name")
 	convertCmd.Flags().StringVarP(&host, "host", "H", "", "the host of mysql")
 	convertCmd.Flags().IntVarP(&port, "port", "P", 0, "the port of mysql")
 	convertCmd.Flags().StringVarP(&user, "user", "u", "", "the user of mysql")
@@ -74,7 +77,27 @@ func convertFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	if outputFilePath != "" {
+		saveResultToFile(s)
+	}
 	fmt.Println(s)
+}
+
+func saveResultToFile(s string) {
+	f, err := os.Create(outputFilePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer f.Close()
+
+	_, err = f.Write([]byte(s))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("\nwrite output in:", outputFilePath)
 }
 
 func getCmdConfig() (util.CMDConfig, error) {

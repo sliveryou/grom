@@ -99,17 +99,18 @@ Examples:
   grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG --package PACKAGE_NAME --struct STRUCT_NAME
 
 Flags:
-  -d, --database string   the database of mysql
-  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])
-  -h, --help              help for convert
-  -H, --host string       the host of mysql
-  -n, --name string       the name of the grom configuration file
-      --package string    the package name of the converted model structure
-  -p, --password string   the password of mysql
-  -P, --port int          the port of mysql
-      --struct string     the struct name of the converted model structure
-  -t, --table string      the table of mysql
-  -u, --user string       the user of mysql
+  -d, --database string           the database of mysql
+  -e, --enable strings            enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])
+  -h, --help                      help for convert
+  -H, --host string               the host of mysql
+  -n, --name string               the name of the grom configuration file
+  -o, --output-file-name string   the name of the grom output file name
+      --package string            the package name of the converted model structure
+  -p, --password string           the password of mysql
+  -P, --port int                  the port of mysql
+      --struct string             the struct name of the converted model structure
+  -t, --table string              the table of mysql
+  -u, --user string               the user of mysql
 
 $ grom version -h
 Show the grom version information, such as project name, project version, go version, git commit id, build time, etc

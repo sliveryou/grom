@@ -103,6 +103,7 @@ $ grom convert -h
   -h, --help              获取有关 convert 命令的帮助
   -H, --host string       将要连接的 mysql 主机
   -n, --name string       指定的 grom 配置文件的名称
+  -o, --output string     指定的存放 grom 输出的文件的名称
       --package string    转换后的模型结构的包名称
   -p, --password string   将要连接的 mysql 密码
   -P, --port int          将要连接的 mysql 端口
@@ -206,13 +207,13 @@ $ vim grom.json
     "enable_gorose_tag": false,
     "enable_gorm_v2_tag": true
 }
-$ grom convert -n grom.json
+$ grom convert -n grom.json -o output.go
 ```
 
 你也可以在命令行中填写参数，而不生成配置文件：
 
 ```shell script
-$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG
+$ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG -o output.go
 ```
 
 然后你将会得到生成的代码：

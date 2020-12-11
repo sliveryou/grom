@@ -54,7 +54,7 @@ func init() {
 	convertCmd.Flags().StringVar(&packageName, "package", "", "the package name of the converted model structure")
 	convertCmd.Flags().StringVar(&structName, "struct", "", "the struct name of the converted model structure")
 	convertCmd.Flags().StringVarP(&filePath, "name", "n", "", "the name of the grom configuration file")
-	convertCmd.Flags().StringVarP(&outputFilePath, "output-file-name", "o", "", "the name of the grom output file name")
+	convertCmd.Flags().StringVarP(&outputFilePath, "output", "o", "", "the name of the file used to store the grom output")
 	convertCmd.Flags().StringVarP(&host, "host", "H", "", "the host of mysql")
 	convertCmd.Flags().IntVarP(&port, "port", "P", 0, "the port of mysql")
 	convertCmd.Flags().StringVarP(&user, "user", "u", "", "the user of mysql")
@@ -72,18 +72,19 @@ func convertFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	s, err := util.ConvertTable(config)
+	out, err := util.ConvertTable(config)
 	if err != nil {
 		return
 	}
 
 	if outputFilePath != "" {
-		saveResultToFile(s)
+		saveOutputToFile(out)
+	} else {
+		fmt.Println(out)
 	}
-	fmt.Println(s)
 }
 
-func saveResultToFile(s string) {
+func saveOutputToFile(out string) {
 	f, err := os.Create(outputFilePath)
 	if err != nil {
 		fmt.Println(err)
@@ -91,12 +92,13 @@ func saveResultToFile(s string) {
 	}
 	defer f.Close()
 
-	_, err = f.Write([]byte(s))
+	_, err = f.Write([]byte(out))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	fmt.Println(out)
 	fmt.Println("\nwrite output in:", outputFilePath)
 }
 

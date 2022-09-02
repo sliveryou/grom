@@ -111,16 +111,18 @@ type CMDConfig struct {
 	EnableBeegoTag     bool   `json:"enable_beego_tag"`
 	EnableGoroseTag    bool   `json:"enable_gorose_tag"`
 	EnableGormV2Tag    bool   `json:"enable_gorm_v2_tag"`
+	DisableUnsigned    bool   `json:"disable_unsigned"`
 }
 
 // DBConfig represents the config of the connected database.
 type DBConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Database string `json:"database"`
-	Table    string `json:"table"`
+	Host         string `json:"host"`
+	Port         int    `json:"port"`
+	User         string `json:"user"`
+	Password     string `json:"password"`
+	Database     string `json:"database"`
+	Table        string `json:"table"`
+	TableComment string `json:"table_comment"`
 }
 
 // StructField represents the field of the generated model structure.

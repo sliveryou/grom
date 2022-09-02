@@ -87,7 +87,8 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 			Name: cn, DataType: dt, Type: ct, Default: strings.TrimSpace(cd.String), Comment: strings.TrimSpace(cc),
 			Length: cml.Int64, Precision: np.Int64, Scale: nc.Int64, Position: op,
 			IsPrimaryKey: ck == "PRI", IsAutoIncrement: strings.Contains(e, "auto_increment"),
-			IsUnsigned: strings.Contains(ct, "unsigned"), IsNullable: in == "YES",
+			IsUnsigned: strings.Contains(ct, "unsigned") && !c.DisableUnsigned,
+			IsNullable: in == "YES",
 		}
 
 		ci.Indexes, ci.UniqueIndexes = getColumnIndexInfos(indexInfos, ci.Name)

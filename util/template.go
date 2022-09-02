@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -106,7 +109,24 @@ const gormV2Template = `gorm:"
 
 func init() {
 	var err error
-	generator, err = template.New("out").Parse(outTemplate)
+	out := outTemplate
+
+	// get current directory
+	path, err := os.Getwd()
+
+	for true {
+		fileByteArr, err := ioutil.ReadFile(path + "/table.template")
+		if err == nil && fileByteArr != nil {
+			out = string(fileByteArr)
+			break
+		}
+		dir := filepath.Dir(path)
+		if dir == path {
+			break
+		}
+		path = dir
+	}
+	generator, err = template.New("out").Parse(out)
 	if err != nil {
 		fmt.Println("parse out template err:", err)
 	}
@@ -142,6 +162,7 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 	buffer := &bytes.Buffer{}
 	err := generator.ExecuteTemplate(buffer, "out", struct {
 		Table              string
+		TableComment       string
 		PackageName        string
 		StructName         string
 		ShortStructName    string
@@ -156,6 +177,7 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 		EnableTableUnique  bool
 	}{
 		Table:              cc.Table,
+		TableComment:       cc.TableComment,
 		PackageName:        cc.PackageName,
 		StructName:         cc.StructName,
 		ShortStructName:    strings.ToLower(cc.StructName[0:1]),

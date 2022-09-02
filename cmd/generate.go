@@ -69,6 +69,7 @@ func generateFileInfo() string {
 		EnableBeegoTag:     false,
 		EnableGoroseTag:    false,
 		EnableGormV2Tag:    true,
+		DisableUnsigned:    false,
 	}
 
 	b, _ := json.MarshalIndent(&c, "", "    ")

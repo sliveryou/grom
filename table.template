@@ -1,0 +1,24 @@
+package {{.PackageName}}
+
+import (
+	"ginorm/dao/register"
+)
+
+func init() {
+	register.SetEntity("{{ .StructName }}", {{ .StructName }}{}, []{{ .StructName }}{})
+}
+
+// {{ .TableComment }}
+type {{ .StructName }} struct {
+	{{ range .StructFields -}}
+		{{ .Name }} {{ .Type }} {{ .Tag }}
+		{{- if and $.EnableFieldComment .Comment }}// {{ .Comment }}{{ end }}
+	{{ end -}}
+}
+
+{{ if .EnableTableName }}
+// TableName returns the table name of the {{ .StructName }} model
+func ({{ .ShortStructName }} *{{ .StructName }}) TableName() string {
+	return "{{ .Table }}"
+}
+{{ end }}

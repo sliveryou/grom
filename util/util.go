@@ -8,6 +8,13 @@ import (
 
 // ConvertTable converts mysql table fields to golang model structure by command config.
 func ConvertTable(cc CMDConfig) (string, error) {
+	comment, err := getTableComment(&cc)
+	if err != nil {
+		fmt.Println("get table comment err:", err)
+		return "", err
+	}
+	cc.TableComment = comment
+
 	cis, err := getColumnInfos(&cc)
 	if err != nil {
 		fmt.Println("get column info slice err:", err)
@@ -62,6 +69,31 @@ func ConvertTable(cc CMDConfig) (string, error) {
 	}
 
 	return generateCode(&cc, fields)
+}
+
+// getTableComment 获取表注释
+func getTableComment(c *CMDConfig) (string, error) {
+	db, err := getDB(c)
+	if err != nil {
+		return "", err
+	}
+
+	querySQL := `SELECT TABLE_COMMENT
+	FROM information_schema.TABLES
+	where TABLE_NAME = ?`
+
+	rows, err := db.Query(querySQL, c.Table)
+	var (
+		comment string
+	)
+	for rows.Next() {
+		err = rows.Scan(&comment)
+		if err != nil {
+			return "", err
+		}
+		break
+	}
+	return comment, nil
 }
 
 // convertDataType converts the mysql data type to golang data type.

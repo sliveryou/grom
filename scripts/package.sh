@@ -1,5 +1,8 @@
 #!/bin/sh
-file_path=$(cd "$(dirname "$0")" || exit; pwd)/..
+file_path=$(
+  cd "$(dirname "$0")" || exit
+  pwd
+)/..
 
 main_path="github.com/sliveryou/grom/cmd"
 go_version=$(go version | awk '{ print $3 }')

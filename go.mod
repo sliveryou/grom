@@ -1,8 +1,10 @@
 module github.com/sliveryou/grom
 
-go 1.14
+go 1.16
 
 require (
-	github.com/go-sql-driver/mysql v1.5.0
-	github.com/spf13/cobra v1.0.0
+	github.com/go-sql-driver/mysql v1.7.1
+	github.com/gookit/color v1.5.4
+	github.com/pkg/errors v0.9.1
+	github.com/spf13/cobra v1.8.0
 )

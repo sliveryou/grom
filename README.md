@@ -18,9 +18,15 @@ Download package by using:
 
 ```shell script
 $ go get -u github.com/sliveryou/grom
+
+# if the go version is before 1.16, use the following command to install:
+$ GO111MODULE=on go get -u github.com/sliveryou/grom@latest
+
+# if the go version is 1.16 and later, use the following command to install:
+$ GO111MODULE=on go install github.com/sliveryou/grom@latest
 ```
 
-To build from source code, you need [Go environment](https://golang.org/dl/) (1.14 or newer) and use the following commands:
+To build from source code, you need [Go environment](https://golang.org/dl/) (1.16 or newer) and use the following commands:
 
 ```shell script
 $ git clone https://github.com/sliveryou/grom.git

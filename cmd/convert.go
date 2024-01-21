@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/sliveryou/grom/util"
@@ -47,7 +46,7 @@ var convertCmd = &cobra.Command{
 	Long:  "Convert mysql table fields to golang model structure by information_schema.columns and information_schema.statistics",
 	Example: "  grom convert -n ./grom.json\n" +
 		"  grom convert -H localhost -P 3306 -u user -p password -d database -t table -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG --package PACKAGE_NAME --struct STRUCT_NAME",
-	Run: convertFunc,
+	RunE: convertFunc,
 }
 
 func init() {
@@ -66,56 +65,49 @@ func init() {
 	rootCmd.AddCommand(convertCmd)
 }
 
-func convertFunc(cmd *cobra.Command, args []string) {
+func convertFunc(_ *cobra.Command, _ []string) error {
 	config, err := getCmdConfig()
 	if err != nil {
-		return
+		return errors.WithMessage(err, "getCmdConfig err")
 	}
 
-	out, err := util.ConvertTable(config)
+	out, err := util.ConvertTable(*config)
 	if err != nil {
-		return
+		return errors.WithMessage(err, "util.ConvertTable err")
 	}
 
 	if outputFilePath != "" {
-		saveOutputToFile(out)
+		return saveOutputToFile(out)
 	} else {
 		fmt.Println(out)
 	}
+
+	return nil
 }
 
-func saveOutputToFile(out string) {
-	f, err := os.Create(outputFilePath)
+func saveOutputToFile(out string) error {
+	err := os.WriteFile(outputFilePath, []byte(out), 0o666)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer f.Close()
-
-	_, err = f.Write([]byte(out))
-	if err != nil {
-		fmt.Println(err)
-		return
+		return errors.WithMessage(err, "os.WriteFile err")
 	}
 
-	fmt.Println(out)
-	fmt.Println("\nwrite output in:", outputFilePath)
+	fmt.Println("write output in:", outputFilePath)
+
+	return nil
 }
 
-func getCmdConfig() (util.CMDConfig, error) {
+func getCmdConfig() (*util.CMDConfig, error) {
 	config := util.CMDConfig{}
 
 	if filePath != "" {
-		content, err := ioutil.ReadFile(filePath)
+		content, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Println(err)
-			return util.CMDConfig{}, err
+			return nil, errors.WithMessage(err, "os.ReadFile err")
 		}
 
 		err = json.Unmarshal(content, &config)
 		if err != nil {
-			fmt.Println(err)
-			return util.CMDConfig{}, err
+			return nil, errors.WithMessage(err, "json.Unmarshal err")
 		}
 	}
 
@@ -148,9 +140,7 @@ func getCmdConfig() (util.CMDConfig, error) {
 		for _, v := range enable {
 			service := strings.ToUpper(v)
 			if _, ok := validServices[service]; !ok {
-				err := errors.New("enabled service is invalid, service: " + service)
-				fmt.Println(err)
-				return util.CMDConfig{}, err
+				return nil, errors.New("enabled service is invalid, service: " + service)
 			}
 
 			switch service {
@@ -180,5 +170,5 @@ func getCmdConfig() (util.CMDConfig, error) {
 		}
 	}
 
-	return config, nil
+	return &config, nil
 }

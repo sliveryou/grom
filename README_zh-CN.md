@@ -16,10 +16,14 @@ Grom 是一个可以将 mysql 的表字段转换为 golang 的模型结构的命
 使用如下命令下载并安装包：
 
 ```shell script
-$ go get -u github.com/sliveryou/grom
+# 如果 go 版本在 1.16 以前，使用如下命令安装：
+$ GO111MODULE=on go get -u github.com/sliveryou/grom@latest
+
+# 如果 go 版本在 1.16 及以后，使用如下命令安装：
+$ GO111MODULE=on go install github.com/sliveryou/grom@latest
 ```
 
-如果要从源码开始构建的话，需要有 [Go](https://golang.org/dl/) 环境（1.14 及以上版本），并使用如下命令：
+如果要从源码开始构建的话，需要有 [Go](https://golang.org/dl/) 环境（1.16 及以上版本），并使用如下命令：
 
 ```shell script
 $ git clone https://github.com/sliveryou/grom.git

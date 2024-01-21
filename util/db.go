@@ -2,12 +2,11 @@ package util
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
-	// init mysql driver
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
 )
 
 // getDB returns the opened db connection.
@@ -22,11 +21,44 @@ func getDB(c *CMDConfig) (*sql.DB, error) {
 
 	db, err = sql.Open(MySQLDriverName, dsn)
 	if err != nil {
-		fmt.Println("open mysql db err:", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "sql.Open err")
 	}
 
 	return db, nil
+}
+
+// getTableComment returns the comment of table.
+func getTableComment(c *CMDConfig) (string, error) {
+	db, err := getDB(c)
+	if err != nil {
+		return "", err
+	}
+
+	querySQL := "SELECT TABLE_COMMENT " +
+		"FROM INFORMATION_SCHEMA.TABLES " +
+		"WHERE TABLE_NAME = ?"
+
+	rows, err := db.Query(querySQL, c.Table)
+	if err != nil {
+		return "", errors.WithMessage(err, "db.Query err")
+	}
+
+	if rows != nil {
+		defer rows.Close()
+	} else {
+		return "", errors.New("no rows returned")
+	}
+
+	var comment string
+	for rows.Next() {
+		err = rows.Scan(&comment)
+		if err != nil {
+			return "", errors.WithMessage(err, "rows.Scan err")
+		}
+		break
+	}
+
+	return comment, nil
 }
 
 // getColumnInfos returns the details of columns.
@@ -49,8 +81,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 
 	rows, err := db.Query(querySQL, c.Database, c.Table)
 	if err != nil {
-		fmt.Println("db query err:", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "db.Query err")
 	}
 
 	if rows != nil {
@@ -62,7 +93,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 	columnInfos = make([]*ColumnInfo, 0)
 	indexInfos, err := getIndexInfos(c)
 	if err != nil {
-		fmt.Println("get index info slice err:", err)
+		return nil, errors.WithMessage(err, "getIndexInfos err")
 	}
 
 	for rows.Next() {
@@ -79,8 +110,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 
 		err = rows.Scan(&cn, &op, &cd, &in, &dt, &cml, &np, &nc, &ct, &ck, &e, &cc)
 		if err != nil {
-			fmt.Println("rows scan err:", err)
-			return nil, err
+			return nil, errors.WithMessage(err, "rows.Scan err")
 		}
 
 		ci := ColumnInfo{
@@ -119,8 +149,7 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 
 	rows, err := db.Query(querySQL, c.Database, c.Table)
 	if err != nil {
-		fmt.Println("db query err:", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "db.Query err")
 	}
 
 	indexInfos = make([]*IndexInfo, 0)
@@ -141,8 +170,7 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 
 		err = rows.Scan(&nu, &in, &sii, &cn, &ic)
 		if err != nil {
-			fmt.Println("rows scan err:", err)
-			return nil, err
+			return nil, errors.WithMessage(err, "rows.Scan err")
 		}
 
 		if in == "PRIMARY" {
@@ -160,7 +188,7 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 }
 
 // getColumnIndexInfos returns the details of column indexes and column unique indexes.
-func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnIndexes []*IndexInfo, columnUniques []*IndexInfo) {
+func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnIndexes, columnUniques []*IndexInfo) {
 	for i := range indexInfos {
 		indexInfo := indexInfos[i]
 		if indexInfo.ColumnName == columnName {
@@ -176,7 +204,7 @@ func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnInde
 }
 
 // getTableIndexes returns the details of table indexes and table unique indexes.
-func getTableIndexes(indexInfos []*IndexInfo, enableInitialism ...bool) (tableIndexes []string, tableUniques []string) {
+func getTableIndexes(indexInfos []*IndexInfo, enableInitialism ...bool) (tableIndexes, tableUniques []string) {
 	tableIndexMap, tableUniqueMap := make(map[string][]string), make(map[string][]string)
 
 	for i := range indexInfos {

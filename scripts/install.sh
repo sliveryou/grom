@@ -11,4 +11,4 @@ git_commit=$(git rev-parse --short=10 HEAD)
 flags="-X '${main_path}.goVersion=${go_version}' -X '${main_path}.buildTime=${build_time}' -X '${main_path}.gitCommit=${git_commit}'"
 
 cd "${file_path}" || exit
-go build -ldflags "${flags}" -o "${GOPATH}"/bin
+go install -ldflags "${flags}"

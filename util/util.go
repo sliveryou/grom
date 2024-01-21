@@ -4,48 +4,47 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/pkg/errors"
 )
 
 // ConvertTable converts mysql table fields to golang model structure by command config.
 func ConvertTable(cc CMDConfig) (string, error) {
+	comment, err := getTableComment(&cc)
+	if err != nil {
+		return "", errors.WithMessage(err, "getTableComment err")
+	}
+	cc.TableComment = comment
+
 	cis, err := getColumnInfos(&cc)
 	if err != nil {
-		fmt.Println("get column info slice err:", err)
-		return "", err
+		return "", errors.WithMessage(err, "getColumnInfos err")
 	}
 	defer db.Close()
 
 	var fields []*StructField
-
 	for i := range cis {
 		ci := cis[i]
-
 		var tags []string
 
 		if cc.EnableJsonTag {
 			tags = append(tags, getJsonTag(ci))
 		}
-
 		if cc.EnableXmlTag {
 			tags = append(tags, getXmlTag(ci))
 		}
-
 		if cc.EnableGormTag {
 			tags = append(tags, getGormTag(ci))
 		}
-
 		if cc.EnableXormTag {
 			tags = append(tags, getXormTag(ci))
 		}
-
 		if cc.EnableBeegoTag {
 			tags = append(tags, getBeegoTag(ci))
 		}
-
 		if cc.EnableGoroseTag {
 			tags = append(tags, getGoroseTag(ci))
 		}
-
 		if cc.EnableGormV2Tag && !cc.EnableGormTag {
 			tags = append(tags, getGormV2Tag(ci))
 		}
@@ -56,7 +55,10 @@ func ConvertTable(cc CMDConfig) (string, error) {
 			Comment: ci.Comment,
 		}
 		if len(tags) > 0 {
-			field.Tag = fmt.Sprintf("`%s`", strings.Join(tags, " "))
+			field.Tag = fmt.Sprintf("`%s`", strings.Join(removeEmpty(tags), " "))
+		}
+		if field.Type == goTime {
+			cc.EnableGoTime = true
 		}
 		fields = append(fields, &field)
 	}
@@ -68,15 +70,31 @@ func ConvertTable(cc CMDConfig) (string, error) {
 func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 	switch ci.DataType {
 	case "tinyint", "smallint", "mediumint":
+		isBool := false
+		if strings.Contains(ci.Type, "tinyint(1)") {
+			isBool = true
+		}
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
+				if isBool {
+					return gureguNullBool
+				}
 				return gureguNullInt
 			} else if cc.EnableSqlNull {
+				if isBool {
+					return sqlNullBool
+				}
 				return sqlNullInt32
 			}
 		}
 		if ci.IsUnsigned {
+			if isBool {
+				return goBool
+			}
 			return goUint32
+		}
+		if isBool {
+			return goBool
 		}
 		return goInt32
 	case "int", "integer":
@@ -241,4 +259,16 @@ func getBeegoType(ci *ColumnInfo) string {
 	default:
 		return fmt.Sprintf(";type(%s)", ci.DataType)
 	}
+}
+
+// removeEmpty remove empty fields.
+func removeEmpty(slice []string) []string {
+	result := make([]string, 0, len(slice))
+	for _, field := range slice {
+		if field != "" {
+			result = append(result, field)
+		}
+	}
+
+	return result
 }

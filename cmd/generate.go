@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/sliveryou/grom/util"
@@ -20,7 +21,7 @@ var generateCmd = &cobra.Command{
 	Short:   "Generate grom configuration file",
 	Long:    fmt.Sprintf("Generate grom configuration file like this:\n%s", generateFileInfo()),
 	Example: "  grom generate -n ./grom.json",
-	Run:     generateFunc,
+	RunE:    generateFunc,
 }
 
 func init() {
@@ -28,22 +29,15 @@ func init() {
 	rootCmd.AddCommand(generateCmd)
 }
 
-func generateFunc(cmd *cobra.Command, args []string) {
-	f, err := os.Create(fileName)
+func generateFunc(_ *cobra.Command, _ []string) error {
+	err := os.WriteFile(fileName, []byte(fileInfo), 0o666)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer f.Close()
-
-	_, err = f.Write([]byte(fileInfo))
-	if err != nil {
-		fmt.Println(err)
-		return
+		return errors.WithMessage(err, "os.WriteFile err")
 	}
 
-	fmt.Println(fileInfo)
-	fmt.Println("\nwrite in:", fileName)
+	fmt.Println("write in:", fileName)
+
+	return nil
 }
 
 func generateFileInfo() string {

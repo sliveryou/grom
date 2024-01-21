@@ -111,6 +111,8 @@ type CMDConfig struct {
 	EnableBeegoTag     bool   `json:"enable_beego_tag"`
 	EnableGoroseTag    bool   `json:"enable_gorose_tag"`
 	EnableGormV2Tag    bool   `json:"enable_gorm_v2_tag"`
+	EnableGoTime       bool   `json:"-"`
+	TableComment       string `json:"-"`
 }
 
 // DBConfig represents the config of the connected database.

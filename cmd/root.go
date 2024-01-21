@@ -1,10 +1,15 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+)
+
+const (
+	// codeFailure failure code
+	codeFailure = 1
 )
 
 var rootCmd = &cobra.Command{
@@ -17,7 +22,7 @@ var rootCmd = &cobra.Command{
 // Execute executes the root command and its subcommands.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		color.Red.Println(err.Error())
+		os.Exit(codeFailure)
 	}
 }

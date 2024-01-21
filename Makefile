@@ -1,3 +1,5 @@
+.PHONY: build install pkg clean fmt proxy
+
 build:
 	@sh scripts/build.sh
 
@@ -11,17 +13,10 @@ clean:
 	@sh scripts/clean.sh
 
 fmt:
-	@find . -name '*.go' -not -path "./vendor/*" | xargs gofmt -s -w
-	@find . -name '*.go' -not -path "./vendor/*" | xargs goimports -w
-	@find . -name '*.sh' -not -path "./vendor/*" | xargs shfmt -w -s -i 4 -ci -bn
+	@find . -name '*.go' -not -path "./vendor/*" | xargs gofumpt -w -extra
+	@find . -name '*.go' -not -path "./vendor/*" | xargs -n 1 -t goimports-reviser -rm-unused -set-alias -company-prefixes "github.com/sliveryou" -project-name "github.com/sliveryou/grom"
+	@find . -name '*.sh' -not -path "./vendor/*" | xargs shfmt -w -s -i 2 -ci -bn -sr
 
 proxy:
 	@go env -w GO111MODULE="on"
 	@go env -w GOPROXY="https://goproxy.cn,direct"
-
-dep:
-	@go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.27.0
-	@go get golang.org/x/tools/cmd/goimports
-	@go get mvdan.cc/sh/v3/cmd/shfmt
-	@go get mvdan.cc/sh/v3/cmd/gosh
-	@git checkout -- go.mod go.sum

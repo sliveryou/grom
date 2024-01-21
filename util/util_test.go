@@ -50,17 +50,25 @@ func TestConvertDataType(t *testing.T) {
 		cc          CMDConfig
 		expectation string
 	}{
-		{ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
-			CMDConfig{EnableSqlNull: false, EnableGureguNull: false}, "int32",
+		{
+			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
+			CMDConfig{EnableSqlNull: false, EnableGureguNull: false},
+			"int32",
 		},
-		{ColumnInfo{DataType: "tinyint", IsNullable: false, IsUnsigned: true},
-			CMDConfig{EnableSqlNull: false, EnableGureguNull: false}, "uint32",
+		{
+			ColumnInfo{DataType: "tinyint", IsNullable: false, IsUnsigned: true},
+			CMDConfig{EnableSqlNull: false, EnableGureguNull: false},
+			"uint32",
 		},
-		{ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
-			CMDConfig{EnableSqlNull: true, EnableGureguNull: false}, "sql.NullInt32",
+		{
+			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
+			CMDConfig{EnableSqlNull: true, EnableGureguNull: false},
+			"sql.NullInt32",
 		},
-		{ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: true},
-			CMDConfig{EnableSqlNull: true, EnableGureguNull: true}, "null.Int",
+		{
+			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: true},
+			CMDConfig{EnableSqlNull: true, EnableGureguNull: true},
+			"null.Int",
 		},
 	}
 
@@ -144,18 +152,30 @@ func TestGetGormTag(t *testing.T) {
 		ci          ColumnInfo
 		expectation string
 	}{
-		{ColumnInfo{Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
-			IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id"},
-			"gorm:\"primary_key;column:id;type:bigint(20) auto_increment;comment:'用户id'\""},
-		{ColumnInfo{Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
-			Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}}},
-			"gorm:\"column:name;type:varchar(255);not null;index:name_index,name_email_index;default:'user';comment:'用户名称'\""},
-		{ColumnInfo{Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
-			Indexes:       []*IndexInfo{{Name: "name_email_index"}},
-			UniqueIndexes: []*IndexInfo{{Name: "email_index"}}},
-			"gorm:\"column:email;type:varchar(255);not null;index:name_email_index;unique_index:email_index;default:'email';comment:'用户邮箱'\""},
+		{
+			ColumnInfo{
+				Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
+				IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id",
+			},
+			"gorm:\"primary_key;column:id;type:bigint(20) auto_increment;comment:'用户id'\"",
+		},
+		{
+			ColumnInfo{
+				Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
+				Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}},
+			},
+			"gorm:\"column:name;type:varchar(255);not null;index:name_index,name_email_index;default:'user';comment:'用户名称'\"",
+		},
+		{
+			ColumnInfo{
+				Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
+				Indexes:       []*IndexInfo{{Name: "name_email_index"}},
+				UniqueIndexes: []*IndexInfo{{Name: "email_index"}},
+			},
+			"gorm:\"column:email;type:varchar(255);not null;index:name_email_index;unique_index:email_index;default:'email';comment:'用户邮箱'\"",
+		},
 	}
 
 	for _, c := range cases {
@@ -172,18 +192,30 @@ func TestGetGormV2Tag(t *testing.T) {
 		ci          ColumnInfo
 		expectation string
 	}{
-		{ColumnInfo{Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
-			IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id"},
-			"gorm:\"primaryKey;column:id;type:bigint(20) autoIncrement;comment:用户id\""},
-		{ColumnInfo{Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
-			Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}}},
-			"gorm:\"column:name;type:varchar(255);not null;index:name_index,name_email_index;default:user;comment:用户名称\""},
-		{ColumnInfo{Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
-			Indexes:       []*IndexInfo{{Name: "name_email_index"}},
-			UniqueIndexes: []*IndexInfo{{Name: "email_index"}}},
-			"gorm:\"column:email;type:varchar(255);not null;index:name_email_index;uniqueIndex:email_index;default:email;comment:用户邮箱\""},
+		{
+			ColumnInfo{
+				Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
+				IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id",
+			},
+			"gorm:\"primaryKey;column:id;type:bigint(20) autoIncrement;comment:用户id\"",
+		},
+		{
+			ColumnInfo{
+				Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
+				Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}},
+			},
+			"gorm:\"column:name;type:varchar(255);not null;index:name_index,name_email_index;default:user;comment:用户名称\"",
+		},
+		{
+			ColumnInfo{
+				Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
+				Indexes:       []*IndexInfo{{Name: "name_email_index"}},
+				UniqueIndexes: []*IndexInfo{{Name: "email_index"}},
+			},
+			"gorm:\"column:email;type:varchar(255);not null;index:name_email_index;uniqueIndex:email_index;default:email;comment:用户邮箱\"",
+		},
 	}
 
 	for _, c := range cases {
@@ -200,18 +232,30 @@ func TestGetXormTag(t *testing.T) {
 		ci          ColumnInfo
 		expectation string
 	}{
-		{ColumnInfo{Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
-			IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id"},
-			"xorm:\"pk autoincr bigint(20) 'id' comment('用户id')\""},
-		{ColumnInfo{Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
-			Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}}},
-			"xorm:\"varchar(255) 'name' notnull index(name_index) index(name_email_index) default('user') comment('用户名称')\""},
-		{ColumnInfo{Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
-			IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
-			Indexes:       []*IndexInfo{{Name: "name_email_index"}},
-			UniqueIndexes: []*IndexInfo{{Name: "email_index"}}},
-			"xorm:\"varchar(255) 'email' notnull index(name_email_index) unique(email_index) default('email') comment('用户邮箱')\""},
+		{
+			ColumnInfo{
+				Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
+				IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id",
+			},
+			"xorm:\"pk autoincr bigint(20) 'id' comment('用户id')\"",
+		},
+		{
+			ColumnInfo{
+				Name: "name", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "user", Comment: "用户名称",
+				Indexes: []*IndexInfo{{Name: "name_index"}, {Name: "name_email_index"}},
+			},
+			"xorm:\"varchar(255) 'name' notnull index(name_index) index(name_email_index) default('user') comment('用户名称')\"",
+		},
+		{
+			ColumnInfo{
+				Name: "email", Type: "varchar(255)", IsPrimaryKey: false,
+				IsAutoIncrement: false, IsNullable: false, Default: "email", Comment: "用户邮箱",
+				Indexes:       []*IndexInfo{{Name: "name_email_index"}},
+				UniqueIndexes: []*IndexInfo{{Name: "email_index"}},
+			},
+			"xorm:\"varchar(255) 'email' notnull index(name_email_index) unique(email_index) default('email') comment('用户邮箱')\"",
+		},
 	}
 
 	for _, c := range cases {
@@ -228,18 +272,30 @@ func TestGetBeegoTag(t *testing.T) {
 		ci          ColumnInfo
 		expectation string
 	}{
-		{ColumnInfo{Name: "id", Type: "bigint(20)", DataType: "bigint", Precision: 19,
-			Scale: 0, Length: 0, IsPrimaryKey: true, IsAutoIncrement: true,
-			IsNullable: false, Default: "", Comment: "用户id"},
-			"orm:\"pk;auto;column(id);type(bigint);size(20);description(用户id)\""},
-		{ColumnInfo{Name: "name", Type: "varchar(255)", DataType: "varchar", Precision: 0,
-			Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
-			IsNullable: false, Default: "user", Comment: "用户名称"},
-			"orm:\"column(name);type(varchar);size(255);default(user);description(用户名称)\""},
-		{ColumnInfo{Name: "email", Type: "varchar(255)", DataType: "varchar", Precision: 0,
-			Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
-			IsNullable: false, Default: "email", Comment: "用户邮箱"},
-			"orm:\"column(email);type(varchar);size(255);default(email);description(用户邮箱)\""},
+		{
+			ColumnInfo{
+				Name: "id", Type: "bigint(20)", DataType: "bigint", Precision: 19,
+				Scale: 0, Length: 0, IsPrimaryKey: true, IsAutoIncrement: true,
+				IsNullable: false, Default: "", Comment: "用户id",
+			},
+			"orm:\"pk;auto;column(id);type(bigint);size(20);description(用户id)\"",
+		},
+		{
+			ColumnInfo{
+				Name: "name", Type: "varchar(255)", DataType: "varchar", Precision: 0,
+				Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
+				IsNullable: false, Default: "user", Comment: "用户名称",
+			},
+			"orm:\"column(name);type(varchar);size(255);default(user);description(用户名称)\"",
+		},
+		{
+			ColumnInfo{
+				Name: "email", Type: "varchar(255)", DataType: "varchar", Precision: 0,
+				Scale: 0, Length: 255, IsPrimaryKey: false, IsAutoIncrement: false,
+				IsNullable: false, Default: "email", Comment: "用户邮箱",
+			},
+			"orm:\"column(email);type(varchar);size(255);default(email);description(用户邮箱)\"",
+		},
 	}
 
 	for _, c := range cases {
@@ -274,22 +330,38 @@ func TestGetBeegoType(t *testing.T) {
 		ci          ColumnInfo
 		expectation string
 	}{
-		{ColumnInfo{DataType: "decimal", Length: 0, Precision: 10, Scale: 2, IsUnsigned: true},
-			";type(decimal unsigned);digits(10);decimals(2)"},
-		{ColumnInfo{DataType: "bigint", Length: 0, Precision: 19, Scale: 0, IsUnsigned: false},
-			";type(bigint);size(20)"},
-		{ColumnInfo{DataType: "varchar", Length: 255, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(varchar);size(255)"},
-		{ColumnInfo{DataType: "longtext", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(text)"},
-		{ColumnInfo{DataType: "date", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(date)"},
-		{ColumnInfo{DataType: "time", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(datetime)"},
-		{ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(longblob)"},
-		{ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
-			";type(longblob)"},
+		{
+			ColumnInfo{DataType: "decimal", Length: 0, Precision: 10, Scale: 2, IsUnsigned: true},
+			";type(decimal unsigned);digits(10);decimals(2)",
+		},
+		{
+			ColumnInfo{DataType: "bigint", Length: 0, Precision: 19, Scale: 0, IsUnsigned: false},
+			";type(bigint);size(20)",
+		},
+		{
+			ColumnInfo{DataType: "varchar", Length: 255, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(varchar);size(255)",
+		},
+		{
+			ColumnInfo{DataType: "longtext", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(text)",
+		},
+		{
+			ColumnInfo{DataType: "date", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(date)",
+		},
+		{
+			ColumnInfo{DataType: "time", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(datetime)",
+		},
+		{
+			ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(longblob)",
+		},
+		{
+			ColumnInfo{DataType: "longblob", Length: 0, Precision: 0, Scale: 0, IsUnsigned: false},
+			";type(longblob)",
+		},
 	}
 
 	for _, c := range cases {

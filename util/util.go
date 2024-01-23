@@ -10,17 +10,35 @@ import (
 
 // ConvertTable converts mysql table fields to golang model structure by command config.
 func ConvertTable(cc CMDConfig) (string, error) {
-	comment, err := getTableComment(&cc)
+	defer CloseDB()
+
+	fields, err := GetFields(&cc)
 	if err != nil {
-		return "", errors.WithMessage(err, "getTableComment err")
+		return "", err
+	}
+
+	return generateCode(&cc, fields)
+}
+
+// GetFields gets golang structure fields converted by mysql table fields.
+func GetFields(cc *CMDConfig) ([]*StructField, error) {
+	if cc.PackageName == "" {
+		cc.PackageName = "model"
+	}
+	if cc.StructName == "" {
+		cc.StructName = convertName(cc.Table, cc.EnableInitialism)
+	}
+
+	comment, err := getTableComment(cc)
+	if err != nil {
+		return nil, errors.WithMessage(err, "getTableComment err")
 	}
 	cc.TableComment = comment
 
-	cis, err := getColumnInfos(&cc)
+	cis, err := getColumnInfos(cc)
 	if err != nil {
-		return "", errors.WithMessage(err, "getColumnInfos err")
+		return nil, errors.WithMessage(err, "getColumnInfos err")
 	}
-	defer db.Close()
 
 	var fields []*StructField
 	for i := range cis {
@@ -50,9 +68,12 @@ func ConvertTable(cc CMDConfig) (string, error) {
 		}
 
 		field := StructField{
-			Name:    convertName(ci.Name, cc.EnableInitialism),
-			Type:    convertDataType(ci, &cc),
-			Comment: ci.Comment,
+			Name:         convertName(ci.Name, cc.EnableInitialism),
+			Type:         convertDataType(ci, cc),
+			Comment:      ci.Comment,
+			RawName:      ci.Name,
+			IsPrimaryKey: ci.IsPrimaryKey,
+			IsNullable:   ci.IsNullable,
 		}
 		if len(tags) > 0 {
 			field.Tag = fmt.Sprintf("`%s`", strings.Join(removeEmpty(tags), " "))
@@ -63,7 +84,7 @@ func ConvertTable(cc CMDConfig) (string, error) {
 		fields = append(fields, &field)
 	}
 
-	return generateCode(&cc, fields)
+	return fields, nil
 }
 
 // convertDataType converts the mysql data type to golang data type.

@@ -6,8 +6,16 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 )
+
+// CloseDB closes the db connection.
+func CloseDB() {
+	if err := db.Close(); err != nil {
+		color.Red.Println("db.Close err:", err)
+	}
+}
 
 // getDB returns the opened db connection.
 func getDB(c *CMDConfig) (*sql.DB, error) {
@@ -63,10 +71,6 @@ func getTableComment(c *CMDConfig) (string, error) {
 
 // getColumnInfos returns the details of columns.
 func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
-	if columnInfos != nil {
-		return columnInfos, nil
-	}
-
 	db, err := getDB(c)
 	if err != nil {
 		return nil, err
@@ -90,7 +94,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 		return nil, errors.New("no rows returned")
 	}
 
-	columnInfos = make([]*ColumnInfo, 0)
+	columnInfos := make([]*ColumnInfo, 0)
 	indexInfos, err := getIndexInfos(c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "getIndexInfos err")
@@ -117,7 +121,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 			Name: cn, DataType: dt, Type: ct, Default: strings.TrimSpace(cd.String), Comment: strings.TrimSpace(cc),
 			Length: cml.Int64, Precision: np.Int64, Scale: nc.Int64, Position: op,
 			IsPrimaryKey: ck == "PRI", IsAutoIncrement: strings.Contains(e, "auto_increment"),
-			IsUnsigned: strings.Contains(ct, "unsigned"), IsNullable: in == "YES",
+			IsUnsigned: strings.Contains(ct, "unsigned") && !c.DisableUnsigned, IsNullable: in == "YES",
 		}
 
 		ci.Indexes, ci.UniqueIndexes = getColumnIndexInfos(indexInfos, ci.Name)
@@ -133,10 +137,6 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 
 // getIndexInfos returns the details of indexes.
 func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
-	if indexInfos != nil {
-		return indexInfos, nil
-	}
-
 	db, err := getDB(c)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 		return nil, errors.WithMessage(err, "db.Query err")
 	}
 
-	indexInfos = make([]*IndexInfo, 0)
+	indexInfos := make([]*IndexInfo, 0)
 
 	if rows != nil {
 		defer rows.Close()

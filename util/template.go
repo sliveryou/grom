@@ -54,14 +54,6 @@ func init() {
 
 // generateCode generates the output code by command config and structure fields.
 func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
-	if cc.PackageName == "" {
-		cc.PackageName = "model"
-	}
-
-	if cc.StructName == "" {
-		cc.StructName = convertName(cc.Table, cc.EnableInitialism)
-	}
-
 	buffer := &bytes.Buffer{}
 	err := generator.ExecuteTemplate(buffer, "out", struct {
 		Table              string

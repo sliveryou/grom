@@ -26,17 +26,18 @@ var (
 	enable         []string
 
 	validServices = map[string]struct{}{
-		"INITIALISM":    {},
-		"FIELD_COMMENT": {},
-		"SQL_NULL":      {},
-		"GUREGU_NULL":   {},
-		"JSON_TAG":      {},
-		"XML_TAG":       {},
-		"GORM_TAG":      {},
-		"XORM_TAG":      {},
-		"BEEGO_TAG":     {},
-		"GOROSE_TAG":    {},
-		"GORM_V2_TAG":   {},
+		"INITIALISM":       {},
+		"FIELD_COMMENT":    {},
+		"SQL_NULL":         {},
+		"GUREGU_NULL":      {},
+		"JSON_TAG":         {},
+		"XML_TAG":          {},
+		"GORM_TAG":         {},
+		"XORM_TAG":         {},
+		"BEEGO_TAG":        {},
+		"GOROSE_TAG":       {},
+		"GORM_V2_TAG":      {},
+		"DISABLE_UNSIGNED": {},
 	}
 )
 
@@ -60,7 +61,7 @@ func init() {
 	convertCmd.Flags().StringVarP(&password, "password", "p", "", "the password of mysql")
 	convertCmd.Flags().StringVarP(&database, "database", "d", "", "the database of mysql")
 	convertCmd.Flags().StringVarP(&table, "table", "t", "", "the table of mysql")
-	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])")
+	convertCmd.Flags().StringSliceVarP(&enable, "enable", "e", nil, "enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG,DISABLE_UNSIGNED])")
 
 	rootCmd.AddCommand(convertCmd)
 }
@@ -166,6 +167,8 @@ func getCmdConfig() (*util.CMDConfig, error) {
 				config.EnableGoroseTag = true
 			case "GORM_V2_TAG":
 				config.EnableGormV2Tag = true
+			case "DISABLE_UNSIGNED":
+				config.DisableUnsigned = true
 			}
 		}
 	}

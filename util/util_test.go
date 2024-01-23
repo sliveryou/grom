@@ -197,7 +197,7 @@ func TestGetGormV2Tag(t *testing.T) {
 				Name: "id", Type: "bigint(20)", IsPrimaryKey: true,
 				IsAutoIncrement: true, IsNullable: false, Default: "", Comment: "用户id",
 			},
-			"gorm:\"primaryKey;column:id;type:bigint(20) autoIncrement;comment:用户id\"",
+			"gorm:\"primaryKey;autoIncrement;column:id;comment:用户id\"",
 		},
 		{
 			ColumnInfo{

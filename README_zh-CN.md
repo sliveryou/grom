@@ -78,7 +78,8 @@ $ grom generate -h
     "enable_xorm_tag": false,       // 是否启用 xorm 标签
     "enable_beego_tag": false,      // 是否启用 beego orm 标签
     "enable_gorose_tag": false,     // 是否启用 gorose 标签
-    "enable_gorm_v2_tag": true      // 是否启用 gorm v2 标签
+    "enable_gorm_v2_tag": true,     // 是否启用 gorm v2 标签
+    "disable_unsigned": false       // 是否禁用无符号整数类型
 }
 
 用法:
@@ -103,7 +104,7 @@ $ grom convert -h
 
 标记:
   -d, --database string   将要连接的 mysql 数据库
-  -e, --enable strings    启用的服务（必须包含在 [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG] 之中）
+  -e, --enable strings    启用的服务（必须包含在 [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG,DISABLE_UNSIGNED] 之中）
   -h, --help              获取有关 convert 命令的帮助
   -H, --host string       将要连接的 mysql 主机
   -n, --name string       指定的 grom 配置文件的名称
@@ -209,7 +210,8 @@ $ vim grom.json
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
     "enable_gorose_tag": false,
-    "enable_gorm_v2_tag": true
+    "enable_gorm_v2_tag": true,
+    "disable_unsigned": false
 }
 $ grom convert -n grom.json -o output.go
 ```

@@ -8,9 +8,6 @@ import (
 var (
 	db *sql.DB
 
-	columnInfos []*ColumnInfo
-	indexInfos  []*IndexInfo
-
 	tableIndexes []string
 	tableUniques []string
 
@@ -111,6 +108,7 @@ type CMDConfig struct {
 	EnableBeegoTag     bool   `json:"enable_beego_tag"`
 	EnableGoroseTag    bool   `json:"enable_gorose_tag"`
 	EnableGormV2Tag    bool   `json:"enable_gorm_v2_tag"`
+	DisableUnsigned    bool   `json:"disable_unsigned"`
 	EnableGoTime       bool   `json:"-"`
 	TableComment       string `json:"-"`
 }
@@ -127,10 +125,13 @@ type DBConfig struct {
 
 // StructField represents the field of the generated model structure.
 type StructField struct {
-	Name    string
-	Type    string
-	Tag     string
-	Comment string
+	Name         string
+	Type         string
+	Tag          string
+	Comment      string
+	RawName      string
+	IsPrimaryKey bool
+	IsNullable   bool
 }
 
 // ColumnInfo represents the information of the column.

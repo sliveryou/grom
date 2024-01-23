@@ -81,7 +81,8 @@ Generate grom configuration file like this:
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
     "enable_gorose_tag": false,
-    "enable_gorm_v2_tag": true
+    "enable_gorm_v2_tag": true,
+    "disable_unsigned": false
 }
 
 Usage:
@@ -106,7 +107,7 @@ Examples:
 
 Flags:
   -d, --database string   the database of mysql
-  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG])
+  -e, --enable strings    enable services (must in [INITIALISM,FIELD_COMMENT,SQL_NULL,GUREGU_NULL,JSON_TAG,XML_TAG,GORM_TAG,XORM_TAG,BEEGO_TAG,GOROSE_TAG,GORM_V2_TAG,DISABLE_UNSIGNED])
   -h, --help              help for convert
   -H, --host string       the host of mysql
   -n, --name string       the name of the grom configuration file
@@ -212,7 +213,8 @@ $ vim grom.json
     "enable_xorm_tag": false,
     "enable_beego_tag": false,
     "enable_gorose_tag": false,
-    "enable_gorm_v2_tag": true
+    "enable_gorm_v2_tag": true,
+    "disable_unsigned": false
 }
 $ grom convert -n grom.json -o output.go
 ```

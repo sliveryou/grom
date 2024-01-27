@@ -21,6 +21,7 @@ func ConvertTable(cc CmdConfig) (string, error) {
 }
 
 // GetFields gets golang structure fields converted by mysql table fields.
+// Note that after using this function, you need to call the util.CloseDB() function to close the database.
 func GetFields(cc *CmdConfig) ([]*StructField, error) {
 	if cc.PackageName == "" {
 		cc.PackageName = "model"

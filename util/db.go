@@ -12,9 +12,16 @@ import (
 
 // CloseDB closes the db connection.
 func CloseDB() {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
+	if db == nil {
+		return
+	}
 	if err := db.Close(); err != nil {
 		color.Red.Println("db.Close err:", err)
 	}
+	db = nil
 }
 
 // closeRows closes the db rows.
@@ -26,6 +33,9 @@ func closeRows(rows *sql.Rows) {
 
 // getDB returns the opened db connection.
 func getDB(c *CmdConfig) (*sql.DB, error) {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
 	if db != nil {
 		return db, nil
 	}
@@ -129,7 +139,7 @@ func getColumnInfos(c *CmdConfig) ([]*ColumnInfo, error) {
 	}
 
 	if c.EnableBeegoTag {
-		tableIndexes, tableUniques = getTableIndexes(indexInfos, c.EnableInitialism)
+		c.TableIndexes, c.TableUniques = getTableIndexes(indexInfos, c.EnableInitialism)
 	}
 
 	return columnInfos, nil

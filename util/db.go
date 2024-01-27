@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
 )
@@ -50,15 +51,14 @@ func getTableComment(c *CMDConfig) (string, error) {
 		return "", errors.WithMessage(err, "db.Query err")
 	}
 
-	if rows != nil {
-		defer func(rows *sql.Rows) {
-			if err := rows.Close(); err != nil {
-				color.Red.Println("rows.Close err:", err)
-			}
-		}(rows)
-	} else {
+	if rows == nil {
 		return "", errors.New("no rows returned")
 	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			color.Red.Println("rows.Close err:", err)
+		}
+	}(rows)
 
 	var comment string
 	for rows.Next() {
@@ -90,15 +90,14 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 		return nil, errors.WithMessage(err, "db.Query err")
 	}
 
-	if rows != nil {
-		defer func(rows *sql.Rows) {
-			if err := rows.Close(); err != nil {
-				color.Red.Println("rows.Close err:", err)
-			}
-		}(rows)
-	} else {
+	if rows == nil {
 		return nil, errors.New("no rows returned")
 	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			color.Red.Println("rows.Close err:", err)
+		}
+	}(rows)
 
 	columnInfos := make([]*ColumnInfo, 0)
 	indexInfos, err := getIndexInfos(c)
@@ -160,15 +159,14 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 
 	indexInfos := make([]*IndexInfo, 0)
 
-	if rows != nil {
-		defer func(rows *sql.Rows) {
-			if err := rows.Close(); err != nil {
-				color.Red.Println("rows.Close err:", err)
-			}
-		}(rows)
-	} else {
+	if rows == nil {
 		return indexInfos, nil
 	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			color.Red.Println("rows.Close err:", err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var (

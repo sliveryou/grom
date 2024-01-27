@@ -31,11 +31,12 @@ linters-settings:
     # https://github.com/mgechev/revive#available-rules
     rules:
       - name: context-keys-type
+      - name: time-equal
       - name: time-naming
       - name: var-declaration
       - name: unexported-return
       - name: errorf
-      - name: blank-imports
+      # - name: blank-imports
       - name: context-as-argument
       - name: dot-imports
       - name: error-return
@@ -49,6 +50,60 @@ linters-settings:
       - name: range
       - name: receiver-naming
       - name: indent-error-flow
+      - name: argument-limit
+      # - name: cyclomatic
+      - name: max-public-structs
+      - name: file-header
+      - name: empty-block
+      - name: superfluous-else
+      - name: confusing-naming
+      - name: get-return
+      - name: modifies-parameter
+      - name: confusing-results
+      # - name: deep-exit
+      - name: unused-parameter
+      - name: unreachable-code
+      # - name: add-constant
+      # - name: flag-parameter
+      - name: unnecessary-stmt
+      - name: struct-tag
+      - name: modifies-value-receiver
+      - name: constant-logical-expr
+      - name: bool-literal-in-expr
+      - name: redefines-builtin-id
+      - name: function-result-limit
+      - name: imports-blacklist
+      - name: range-val-in-closure
+      - name: range-val-address
+      - name: waitgroup-by-value
+      - name: atomic
+      - name: empty-lines
+      # - name: line-length-limit
+      - name: call-to-gc
+      - name: duplicated-imports
+      - name: import-shadowing
+      # - name: bare-return
+      - name: unused-receiver
+      # - name: unhandled-error
+      # - name: cognitive-complexity
+      - name: string-of-int
+      - name: string-format
+      - name: early-return
+      - name: unconditional-recursion
+      - name: identical-branches
+      - name: defer
+      - name: unexported-naming
+      # - name: function-length
+      - name: nested-structs
+      - name: useless-break
+      - name: banned-characters
+      - name: optimize-operands-order
+      - name: use-any
+      - name: datarace
+      - name: comment-spacings
+      - name: redundant-import-alias
+      - name: import-alias-naming
+      - name: enforce-map-style
   stylecheck:
     # https://staticcheck.io/docs/options#checks
     checks: [ "all", "-ST1000", "-ST1003" ]

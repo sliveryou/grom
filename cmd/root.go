@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	// codeFailure failure code
+	// codeFailure failure code.
 	codeFailure = 1
 )
 

@@ -65,31 +65,32 @@ const (
 
 // Global data type constants.
 const (
-	gureguNullString = "null.String"
-	gureguNullInt    = "null.Int"
-	gureguNullFloat  = "null.Float"
-	gureguNullBool   = "null.Bool"
-	gureguNullTime   = "null.Time"
+	GureguNullString = "null.String"
+	GureguNullInt    = "null.Int"
+	GureguNullFloat  = "null.Float"
+	GureguNullBool   = "null.Bool"
+	GureguNullTime   = "null.Time"
 
-	sqlNullString  = "sql.NullString"
-	sqlNullInt32   = "sql.NullInt32"
-	sqlNullInt64   = "sql.NullInt64"
-	sqlNullFloat64 = "sql.NullFloat64"
-	sqlNullBool    = "sql.NullBool"
-	sqlNullTime    = "sql.NullTime"
+	SqlNullString  = "sql.NullString"
+	SqlNullInt32   = "sql.NullInt32"
+	SqlNullInt64   = "sql.NullInt64"
+	SqlNullFloat64 = "sql.NullFloat64"
+	SqlNullBool    = "sql.NullBool"
+	SqlNullTime    = "sql.NullTime"
 
-	goString  = "string"
-	goBytes   = "[]byte"
-	goInt     = "int"
-	goUint    = "uint"
-	goInt32   = "int32"
-	goUint32  = "uint32"
-	goInt64   = "int64"
-	goUint64  = "uint64"
-	goFloat32 = "float32"
-	goFloat64 = "float64"
-	goBool    = "bool"
-	goTime    = "time.Time"
+	GoString      = "string"
+	GoBytes       = "[]byte"
+	GoInt         = "int"
+	GoUint        = "uint"
+	GoInt32       = "int32"
+	GoUint32      = "uint32"
+	GoInt64       = "int64"
+	GoUint64      = "uint64"
+	GoFloat32     = "float32"
+	GoFloat64     = "float64"
+	GoBool        = "bool"
+	GoTime        = "time.Time"
+	GoPointerTime = "*time.Time"
 )
 
 // CMDConfig represents the config of the running grom command line.
@@ -130,6 +131,7 @@ type StructField struct {
 	Tag          string
 	Comment      string
 	RawName      string
+	Default      string
 	IsPrimaryKey bool
 	IsNullable   bool
 }

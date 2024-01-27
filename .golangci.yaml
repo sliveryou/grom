@@ -1,0 +1,83 @@
+run:
+  concurrency: 4
+  timeout: 5m
+  tests: true
+
+linters-settings:
+  gosimple:
+    go: "1.16"
+    # https://staticcheck.io/docs/options#checks
+    checks: [ "all" ]
+  staticcheck:
+    go: "1.16"
+    # https://staticcheck.io/docs/options#checks
+    checks: [ "all" ]
+  goconst:
+    # https://github.com/jgautheron/goconst#usage
+    ignore-tests: true
+    min-len: 3
+    min-occurrences: 3
+  gocritic:
+    # https://go-critic.github.io/overview#checks-overview
+    disabled-checks:
+      - ifElseChain
+  gofumpt:
+    lang-version: "1.16"
+    # https://github.com/mvdan/gofumpt#gofumpt
+    extra-rules: true
+  revive:
+    ignore-generated-header: true
+    severity: warning
+    # https://github.com/mgechev/revive#available-rules
+    rules:
+      - name: context-keys-type
+      - name: time-naming
+      - name: var-declaration
+      - name: unexported-return
+      - name: errorf
+      - name: blank-imports
+      - name: context-as-argument
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      # - name: var-naming
+      # - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: indent-error-flow
+  stylecheck:
+    # https://staticcheck.io/docs/options#checks
+    checks: [ "all", "-ST1000", "-ST1003" ]
+
+linters:
+  disable-all: true
+  enable:
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - asciicheck
+    - bidichk
+    - forcetypeassert
+    - goconst
+    - gocritic
+    - gofumpt
+    - nilerr
+    - nilnil
+    - predeclared
+    - revive
+    - stylecheck
+    - unconvert
+    - errcheck
+    - godot
+    - wastedassign
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

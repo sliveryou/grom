@@ -72,13 +72,14 @@ func GetFields(cc *CMDConfig) ([]*StructField, error) {
 			Type:         convertDataType(ci, cc),
 			Comment:      ci.Comment,
 			RawName:      ci.Name,
+			Default:      ci.Default,
 			IsPrimaryKey: ci.IsPrimaryKey,
 			IsNullable:   ci.IsNullable,
 		}
 		if len(tags) > 0 {
 			field.Tag = fmt.Sprintf("`%s`", strings.Join(removeEmpty(tags), " "))
 		}
-		if field.Type == goTime {
+		if field.Type == GoTime {
 			cc.EnableGoTime = true
 		}
 		fields = append(fields, &field)
@@ -98,88 +99,88 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				if isBool {
-					return gureguNullBool
+					return GureguNullBool
 				}
-				return gureguNullInt
+				return GureguNullInt
 			} else if cc.EnableSqlNull {
 				if isBool {
-					return sqlNullBool
+					return SqlNullBool
 				}
-				return sqlNullInt32
+				return SqlNullInt32
 			}
 		}
 		if ci.IsUnsigned {
 			if isBool {
-				return goBool
+				return GoBool
 			}
-			return goUint32
+			return GoUint32
 		}
 		if isBool {
-			return goBool
+			return GoBool
 		}
-		return goInt32
+		return GoInt32
 	case "int", "integer":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullInt
+				return GureguNullInt
 			} else if cc.EnableSqlNull {
-				return sqlNullInt64
+				return SqlNullInt64
 			}
 		}
 		if ci.IsUnsigned {
-			return goUint
+			return GoUint
 		}
-		return goInt
+		return GoInt
 	case "bigint":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullInt
+				return GureguNullInt
 			} else if cc.EnableSqlNull {
-				return sqlNullInt64
+				return SqlNullInt64
 			}
 		}
 		if ci.IsUnsigned {
-			return goUint64
+			return GoUint64
 		}
-		return goInt64
+		return GoInt64
 	case "json", "enum", "set", "char", "varchar", "tinytext", "text", "mediumtext", "longtext":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullString
+				return GureguNullString
 			} else if cc.EnableSqlNull {
-				return sqlNullString
+				return SqlNullString
 			}
 		}
-		return goString
+		return GoString
 	case "year", "date", "datetime", "time", "timestamp":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullTime
+				return GureguNullTime
 			} else if cc.EnableSqlNull {
-				return sqlNullTime
+				return SqlNullTime
 			}
 		}
-		return goTime
+		return GoTime
 	case "float":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullFloat
+				return GureguNullFloat
 			} else if cc.EnableSqlNull {
-				return sqlNullFloat64
+				return SqlNullFloat64
 			}
 		}
-		return goFloat32
+		return GoFloat32
 	case "double", "real", "decimal", "numeric":
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
-				return gureguNullFloat
+				return GureguNullFloat
 			} else if cc.EnableSqlNull {
-				return sqlNullFloat64
+				return SqlNullFloat64
 			}
 		}
-		return goFloat64
+		return GoFloat64
 	case "bit", "binary", "varbinary", "tinyblob", "blob", "mediumblob", "longblob":
-		return goBytes
+		return GoBytes
 	default:
 		return "unknown"
 	}
@@ -232,17 +233,17 @@ func getXmlTag(ci *ColumnInfo) string {
 
 // getGormTag returns the tag string of gorm.
 func getGormTag(ci *ColumnInfo) string {
-	return generateTag(ci, "gorm")
+	return generateTag(ci, gormTplName)
 }
 
 // getXormTag returns the tag string of xorm.
 func getXormTag(ci *ColumnInfo) string {
-	return generateTag(ci, "xorm")
+	return generateTag(ci, xormTplName)
 }
 
 // getBeegoTag returns the tag string of beego orm.
 func getBeegoTag(ci *ColumnInfo) string {
-	return generateTag(ci, "beego")
+	return generateTag(ci, beegoTplName)
 }
 
 // getGoroseTag returns the tag string of gorose.
@@ -252,7 +253,7 @@ func getGoroseTag(ci *ColumnInfo) string {
 
 // getGormV2Tag returns the tag string of gorm v2.
 func getGormV2Tag(ci *ColumnInfo) string {
-	return generateTag(ci, "gormV2")
+	return generateTag(ci, gormV2TplName)
 }
 
 // getBeegoType returns the type tag string of beego orm.

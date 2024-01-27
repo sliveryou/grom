@@ -15,47 +15,53 @@ import (
 var (
 	generator *template.Template
 
+	outTplName    = "out"
+	gormTplName   = "grom"
+	xormTplName   = "xorm"
+	beegoTplName  = "beego"
+	gormV2TplName = "gormV2"
+
 	//go:embed tpl/out.tpl
-	outTemplate string
+	outTpl string
 	//go:embed tpl/gorm.tpl
-	gormTemplate string
+	gormTpl string
 	//go:embed tpl/xorm.tpl
-	xormTemplate string
+	xormTpl string
 	//go:embed tpl/beego.tpl
-	beegoTemplate string
+	beegoTpl string
 	//go:embed tpl/gormv2.tpl
-	gormV2Template string
+	gormV2Tpl string
 )
 
 func init() {
 	var err error
-	generator, err = template.New("out").Parse(outTemplate)
+	generator, err = template.New(outTplName).Parse(outTpl)
 	if err != nil {
-		log.Fatalln(color.Red.Render("parse out template err:", err))
+		log.Fatalln(color.Red.Render("parse out.tpl err:", err))
 	}
-	generator, err = generator.New("gorm").Parse(gormTemplate)
+	generator, err = generator.New(gormTplName).Parse(gormTpl)
 	if err != nil {
-		log.Fatalln(color.Red.Render("parse gorm template err:", err))
+		log.Fatalln(color.Red.Render("parse gorm.tpl err:", err))
 	}
-	generator, err = generator.New("xorm").Parse(xormTemplate)
+	generator, err = generator.New(xormTplName).Parse(xormTpl)
 	if err != nil {
-		log.Fatalln(color.Red.Render("parse xorm template err:", err))
+		log.Fatalln(color.Red.Render("parse xorm.tpl err:", err))
 	}
-	generator, err = generator.New("beego").Funcs(
-		template.FuncMap{"getBeegoType": getBeegoType}).Parse(beegoTemplate)
+	generator, err = generator.New(beegoTplName).Funcs(
+		template.FuncMap{"getBeegoType": getBeegoType}).Parse(beegoTpl)
 	if err != nil {
-		log.Fatalln(color.Red.Render("parse beego orm template err:", err))
+		log.Fatalln(color.Red.Render("parse beego.tpl err:", err))
 	}
-	generator, err = generator.New("gormV2").Parse(gormV2Template)
+	generator, err = generator.New(gormV2TplName).Parse(gormV2Tpl)
 	if err != nil {
-		log.Fatalln(color.Red.Render("parse gormV2 template err:", err))
+		log.Fatalln(color.Red.Render("parse gormv2.tpl err:", err))
 	}
 }
 
 // generateCode generates the output code by command config and structure fields.
 func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 	buffer := &bytes.Buffer{}
-	err := generator.ExecuteTemplate(buffer, "out", struct {
+	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		Table              string
 		TableComment       string
 		PackageName        string

@@ -79,9 +79,8 @@ func convertFunc(_ *cobra.Command, _ []string) error {
 
 	if outputFilePath != "" {
 		return saveOutputToFile(out)
-	} else {
-		fmt.Println(out)
 	}
+	fmt.Println(out)
 
 	return nil
 }

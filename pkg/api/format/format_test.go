@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -50,6 +51,6 @@ service A-api {
 
 func TestAPIFormat(t *testing.T) {
 	r, err := APIFormat(notFormattedStr)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, formattedStr, r)
 }

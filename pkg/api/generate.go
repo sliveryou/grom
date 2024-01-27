@@ -90,7 +90,7 @@ func GenerateProject(pc *ProjectConfig) error {
 	}
 	defer util.CloseDB()
 
-	var apiImports []string
+	apiImports := make([]string, 0, len(pc.Tables))
 	for _, table := range pc.Tables {
 		var apiName string
 		c := pc.Config
@@ -105,7 +105,7 @@ func GenerateProject(pc *ProjectConfig) error {
 		}
 		apiImports = append(apiImports, apiName)
 
-		cc := c.GetCMDConfig()
+		cc := c.GetCmdConfig()
 		fields, err := util.GetFields(cc)
 		if err != nil {
 			return errors.WithMessage(err, "util.GetFields err")

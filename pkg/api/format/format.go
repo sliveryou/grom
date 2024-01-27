@@ -2,9 +2,10 @@ package format
 
 import (
 	"bufio"
-	"errors"
 	"go/format"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/sliveryou/goctl/api/parser"
 	"github.com/sliveryou/goctl/api/util"
@@ -22,7 +23,7 @@ const (
 func APIFormat(data string) (string, error) {
 	_, err := parser.ParseContentWithParserSkipCheckTypeDeclaration(data)
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "parser.ParseContent err")
 	}
 
 	var builder strings.Builder

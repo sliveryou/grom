@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/sliveryou/grom/util"
 )
 
@@ -67,7 +69,7 @@ func mkdirIfNotExist(dir string) error {
 	}
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return os.MkdirAll(dir, os.ModePerm)
+		return errors.WithMessage(os.MkdirAll(dir, os.ModePerm), "os.MkdirAll err")
 	}
 
 	return nil

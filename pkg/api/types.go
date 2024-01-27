@@ -29,9 +29,9 @@ type Config struct {
 	GroupPrefix  string `json:"group_prefix"`  // lower
 }
 
-// GetCMDConfig gets the *util.CMDConfig.
-func (c *Config) GetCMDConfig() *util.CMDConfig {
-	return &util.CMDConfig{
+// GetCmdConfig gets the *util.CmdConfig.
+func (c *Config) GetCmdConfig() *util.CmdConfig {
+	return &util.CmdConfig{
 		DBConfig:         c.DBConfig,
 		StructName:       c.StructName,
 		EnableInitialism: c.EnableInitialism,
@@ -39,8 +39,8 @@ func (c *Config) GetCMDConfig() *util.CMDConfig {
 	}
 }
 
-// UpdateBy Config updated by util.CMDConfig.
-func (c *Config) UpdateBy(cc *util.CMDConfig) {
+// UpdateBy Config updated by util.CmdConfig.
+func (c *Config) UpdateBy(cc *util.CmdConfig) {
 	c.StructName = cc.StructName
 	c.TableComment = cc.TableComment
 }

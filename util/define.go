@@ -2,14 +2,13 @@ package util
 
 import (
 	"database/sql"
+	"sync"
 )
 
 // Global variables.
 var (
-	db *sql.DB
-
-	tableIndexes []string
-	tableUniques []string
+	db      *sql.DB
+	dbMutex sync.Mutex
 
 	commonInitialisms = map[string]struct{}{
 		"ACL":   {},
@@ -96,22 +95,24 @@ const (
 // CmdConfig represents the config of the running grom command line.
 type CmdConfig struct {
 	DBConfig
-	PackageName        string `json:"package_name"`
-	StructName         string `json:"struct_name"`
-	EnableInitialism   bool   `json:"enable_initialism"`
-	EnableFieldComment bool   `json:"enable_field_comment"`
-	EnableSQLNull      bool   `json:"enable_sql_null"`
-	EnableGureguNull   bool   `json:"enable_guregu_null"`
-	EnableJSONTag      bool   `json:"enable_json_tag"`
-	EnableXMLTag       bool   `json:"enable_xml_tag"`
-	EnableGormTag      bool   `json:"enable_gorm_tag"`
-	EnableXormTag      bool   `json:"enable_xorm_tag"`
-	EnableBeegoTag     bool   `json:"enable_beego_tag"`
-	EnableGoroseTag    bool   `json:"enable_gorose_tag"`
-	EnableGormV2Tag    bool   `json:"enable_gorm_v2_tag"`
-	DisableUnsigned    bool   `json:"disable_unsigned"`
-	EnableGoTime       bool   `json:"-"`
-	TableComment       string `json:"-"`
+	PackageName        string   `json:"package_name"`
+	StructName         string   `json:"struct_name"`
+	EnableInitialism   bool     `json:"enable_initialism"`
+	EnableFieldComment bool     `json:"enable_field_comment"`
+	EnableSQLNull      bool     `json:"enable_sql_null"`
+	EnableGureguNull   bool     `json:"enable_guregu_null"`
+	EnableJSONTag      bool     `json:"enable_json_tag"`
+	EnableXMLTag       bool     `json:"enable_xml_tag"`
+	EnableGormTag      bool     `json:"enable_gorm_tag"`
+	EnableXormTag      bool     `json:"enable_xorm_tag"`
+	EnableBeegoTag     bool     `json:"enable_beego_tag"`
+	EnableGoroseTag    bool     `json:"enable_gorose_tag"`
+	EnableGormV2Tag    bool     `json:"enable_gorm_v2_tag"`
+	DisableUnsigned    bool     `json:"disable_unsigned"`
+	EnableGoTime       bool     `json:"-"`
+	TableComment       string   `json:"-"`
+	TableIndexes       []string `json:"-"`
+	TableUniques       []string `json:"-"`
 }
 
 // DBConfig represents the config of the connected database.

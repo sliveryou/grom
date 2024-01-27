@@ -85,16 +85,16 @@ func generateCode(cc *CmdConfig, fields []*StructField) (string, error) {
 		StructName:         cc.StructName,
 		ShortStructName:    strings.ToLower(cc.StructName[0:1]),
 		StructFields:       fields,
-		TableIndexes:       uniqueStrings(tableIndexes),
-		TableUniques:       uniqueStrings(tableUniques),
+		TableIndexes:       uniqueStrings(cc.TableIndexes),
+		TableUniques:       uniqueStrings(cc.TableUniques),
 		EnableFieldComment: cc.EnableFieldComment,
 		NeedImport:         cc.EnableGoTime || cc.EnableSQLNull || cc.EnableGureguNull,
 		EnableGoTime:       cc.EnableGoTime,
 		EnableSQLNull:      cc.EnableSQLNull,
 		EnableGureguNull:   cc.EnableGureguNull,
 		EnableTableName:    cc.EnableGormTag || cc.EnableXormTag || cc.EnableBeegoTag || cc.EnableGoroseTag || cc.EnableGormV2Tag,
-		EnableTableIndex:   cc.EnableBeegoTag && len(tableIndexes) != 0,
-		EnableTableUnique:  cc.EnableBeegoTag && len(tableUniques) != 0,
+		EnableTableIndex:   cc.EnableBeegoTag && len(cc.TableIndexes) != 0,
+		EnableTableUnique:  cc.EnableBeegoTag && len(cc.TableUniques) != 0,
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")

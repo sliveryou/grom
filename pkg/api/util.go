@@ -4,6 +4,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/sliveryou/grom/util"
 )
 
 var (
@@ -69,4 +71,38 @@ func mkdirIfNotExist(dir string) error {
 	}
 
 	return nil
+}
+
+// getTypeEmptyString gets the type empty value string.
+func getTypeEmptyString(t string) string {
+	switch t {
+	case util.GoString:
+		return "\"\""
+	case util.GoInt, util.GoInt32, util.GoInt64, util.GoFloat32, util.GoFloat64:
+		return "0"
+	case util.GoUint, util.GoUint32, util.GoUint64:
+		return "0"
+	case util.GoBool:
+		return "false"
+	case util.GoBytes:
+		return "nil"
+	}
+
+	return "nil"
+}
+
+// toPointer makes the type t to pointer type.
+func toPointer(t string) string {
+	return "*" + strings.TrimPrefix(t, "*")
+}
+
+// isPointerWhenUpdated reports whether f is pointer type when updated.
+func isPointerWhenUpdated(f StructField) bool {
+	if f.IsNullable || f.Default != "" ||
+		f.Type == util.GoInt32 || f.Type == util.GoBool ||
+		(f.Type == util.GoInt && f.Enums != "") {
+		return true
+	}
+
+	return false
 }

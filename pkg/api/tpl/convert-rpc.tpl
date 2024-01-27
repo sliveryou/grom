@@ -5,6 +5,7 @@ func To{{ .StructName }}(src *model.{{ .ModelName }}) *pb.{{ .StructName }} {
 		dst = pb.{{ .StructName }}{
 			{{ .ConvertInfo }}
 		}
+		{{ .IfInfo -}}
 	}
 
 	return &dst

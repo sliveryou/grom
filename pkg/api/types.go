@@ -54,17 +54,58 @@ type ProjectConfig struct {
 	NeedTrimTablePrefix bool     `json:"need_trim_table_prefix"`
 }
 
+// StructField represents the field of the generated model structure.
+type StructField struct {
+	Name         string
+	Type         string
+	Comment      string
+	RawName      string
+	RawType      string
+	Default      string
+	Enums        string
+	IsPrimaryKey bool
+	IsNullable   bool
+}
+
+// ToStructField converts the util.StructField to StructField.
+func ToStructField(sf *util.StructField) StructField {
+	return StructField{
+		Name:         sf.Name,
+		Type:         sf.Type,
+		Comment:      sf.Comment,
+		RawName:      sf.RawName,
+		RawType:      sf.Type,
+		Default:      sf.Default,
+		Enums:        getEnums(sf.Comment),
+		IsPrimaryKey: sf.IsPrimaryKey,
+		IsNullable:   sf.IsNullable,
+	}
+}
+
+// IsTimeField reports whether f is time field.
+func IsTimeField(f StructField) bool {
+	return f.RawType == util.GoTime &&
+		(f.Type == util.GoInt64 || f.Type == util.GoTime || f.Type == util.GoPointerTime)
+}
+
+// IsAutoTimeField reports whether f is auto time field.
+func IsAutoTimeField(f StructField) bool {
+	return strings.Contains(f.RawName, autoTimeSuffix) &&
+		f.Default == defaultCurrentTimestamp &&
+		(f.Type == util.GoInt64 || f.Type == util.GoTime || f.Type == util.GoPointerTime)
+}
+
 type generateConfig struct {
 	IdComment       string
 	SnakeStructName string // snake
 	ModelName       string // camel
 	GroupName       string // lower
-	StructFields    []util.StructField
+	StructFields    []StructField
 }
 
 func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 	gc := generateConfig{
-		IdComment:       "id",
+		IdComment:       defaultIdComment,
 		SnakeStructName: strcase.ToSnake(c.StructName),
 		ModelName:       c.StructName,
 		GroupName:       strings.ToLower(c.StructName),
@@ -75,9 +116,9 @@ func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 		gc.GroupName = strings.ToLower(strcase.ToCamel(c.SnakeStructName))
 	}
 
-	fields := make([]util.StructField, 0, len(fs))
+	fields := make([]StructField, 0, len(fs))
 	for _, f := range fs {
-		fi := *f
+		fi := ToStructField(f)
 		// ignore fields
 		if len(c.IgnoreFields) > 0 && contains(c.IgnoreFields, fi.RawName) {
 			continue
@@ -87,27 +128,25 @@ func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 			if fi.Comment != "" {
 				gc.IdComment = fi.Comment
 			} else {
-				gc.IdComment = c.TableComment + "id"
+				gc.IdComment = c.TableComment + defaultIdComment
 			}
 		}
 		// remove unsigned
-		if strings.HasPrefix(fi.Type, "u") {
-			fi.Type = strings.TrimPrefix(fi.Type, "u")
-		}
+		fi.Type = strings.TrimPrefix(fi.Type, unsignedPrefix)
 		// convert time.Time to int64
-		if fi.Type == "time.Time" {
-			fi.Type = "int64"
+		if fi.Type == util.GoTime {
+			fi.Type = util.GoInt64
 		}
-		if enums := getEnums(fi.Comment); fi.Type == "bool" && enums == "0 1" {
+		if fi.Type == util.GoBool && fi.Enums == boolTypeEnums {
 			// trim bool comment
 			fi.Comment = convertComment(fi.Comment, true)
-		} else if fi.Type == "int" {
-			if enums != "" {
+		} else if fi.Type == util.GoInt {
+			if fi.Enums != "" {
 				// convert enums int to int32
-				fi.Type = "int32"
+				fi.Type = util.GoInt32
 			} else {
 				// convert int to int64 adapted to protobuf
-				fi.Type = "int64"
+				fi.Type = util.GoInt64
 			}
 		}
 		fields = append(fields, fi)

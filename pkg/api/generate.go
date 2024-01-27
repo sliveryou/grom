@@ -21,6 +21,28 @@ import (
 	"github.com/sliveryou/grom/util"
 )
 
+const (
+	outTplName        = "out"
+	serverAPITplName  = "serverAPI"
+	convertAPITplName = "convertAPI"
+	convertRPCTplName = "convertRPC"
+	updateMapTplName  = "updateMap"
+
+	convertAPIOut = "convert-api.txt"
+	convertRPCOut = "convert-rpc.txt"
+	updateMapOut  = "update-map.txt"
+	serverAPIOut  = "server"
+
+	writeFilePerm           = 0o666
+	unsignedPrefix          = "u"
+	commentPrefix           = "// "
+	autoTimeSuffix          = "_at"
+	apiFileSuffix           = ".api"
+	boolTypeEnums           = "0 1"
+	defaultCurrentTimestamp = "CURRENT_TIMESTAMP"
+	defaultIdComment        = "ID"
+)
+
 var (
 	generator *template.Template
 
@@ -38,23 +60,23 @@ var (
 
 func init() {
 	var err error
-	generator, err = template.New("out").Parse(outTpl)
+	generator, err = template.New(outTplName).Parse(outTpl)
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse out.tpl err:", err))
 	}
-	generator, err = generator.New("serverAPI").Parse(serverAPITpl)
+	generator, err = generator.New(serverAPITplName).Parse(serverAPITpl)
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse server-api.tpl err:", err))
 	}
-	generator, err = generator.New("convertAPI").Parse(convertAPITpl)
+	generator, err = generator.New(convertAPITplName).Parse(convertAPITpl)
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse convert-api.tpl err:", err))
 	}
-	generator, err = generator.New("convertRPC").Parse(convertRPCTpl)
+	generator, err = generator.New(convertRPCTplName).Parse(convertRPCTpl)
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse convert-rpc.tpl err:", err))
 	}
-	generator, err = generator.New("updateMap").Parse(updateMapTpl)
+	generator, err = generator.New(updateMapTplName).Parse(updateMapTpl)
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse update-map.tpl err:", err))
 	}
@@ -66,19 +88,20 @@ func GenerateProject(pc *ProjectConfig) error {
 	if err := mkdirIfNotExist(pc.Dir); err != nil {
 		return errors.WithMessage(err, "mkdirIfNotExist err")
 	}
+	defer util.CloseDB()
 
 	var apiImports []string
 	for _, table := range pc.Tables {
+		var apiName string
 		c := pc.Config
 		c.Table = table
-		apiName := ""
 		if pc.NeedTrimTablePrefix {
 			c.StructName = strcase.ToCamel(strings.TrimPrefix(table, pc.TablePrefix))
-			apiName = strings.ToLower(c.StructName) + ".api"
+			apiName = strings.ToLower(c.StructName) + apiFileSuffix
 		} else {
 			c.StructName = strcase.ToCamel(table)
 			c.SnakeStructName = strcase.ToSnake(strings.TrimPrefix(table, pc.TablePrefix))
-			apiName = strings.ToLower(strcase.ToCamel(c.SnakeStructName)) + ".api"
+			apiName = strings.ToLower(strcase.ToCamel(c.SnakeStructName)) + apiFileSuffix
 		}
 		apiImports = append(apiImports, apiName)
 
@@ -94,7 +117,7 @@ func GenerateProject(pc *ProjectConfig) error {
 			return errors.WithMessage(err, "GenerateAPI err")
 		}
 
-		err = os.WriteFile(path.Join(pc.Dir, apiName), []byte(api), 0o666)
+		err = os.WriteFile(path.Join(pc.Dir, apiName), []byte(api), writeFilePerm)
 		if err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
@@ -120,34 +143,34 @@ func GenerateProject(pc *ProjectConfig) error {
 
 	if len(apiImports) > 0 {
 		c := pc.Config
-		if out, err := GenerateServerAPI(&c, apiImports); err == nil {
-			fileName := strings.ToLower(strings.Trim(pc.TablePrefix, `_`))
-			if fileName == "" {
-				fileName = "server"
-			}
-			fileName = path.Join(pc.Dir, fileName+".api")
-			if err := os.WriteFile(fileName, []byte(out), 0o666); err != nil {
-				return errors.WithMessage(err, "os.WriteFile err")
-			}
-			if err := protogen.DoGenProto(fileName, pc.Dir); err != nil {
-				return errors.WithMessage(err, "protogen.DoGenProto err")
-			}
-		} else {
+		out, err := GenerateServerAPI(&c, apiImports)
+		if err != nil {
 			return errors.WithMessage(err, "GenerateServerAPI err")
+		}
+		fileName := strings.ToLower(strings.Trim(pc.TablePrefix, `_`))
+		if fileName == "" {
+			fileName = serverAPIOut
+		}
+		fileName = path.Join(pc.Dir, fileName+apiFileSuffix)
+		if err := os.WriteFile(fileName, []byte(out), writeFilePerm); err != nil {
+			return errors.WithMessage(err, "os.WriteFile err")
+		}
+		if err := protogen.DoGenProto(fileName, pc.Dir); err != nil {
+			return errors.WithMessage(err, "protogen.DoGenProto err")
 		}
 	}
 	if ca := cab.String(); ca != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, "convert-api.txt"), []byte(ca[:len(ca)-1]), 0o666); err != nil {
+		if err := os.WriteFile(path.Join(pc.Dir, convertAPIOut), []byte(ca[:len(ca)-1]), writeFilePerm); err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
 	}
 	if cr := crb.String(); cr != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, "convert-rpc.txt"), []byte(cr[:len(cr)-1]), 0o666); err != nil {
+		if err := os.WriteFile(path.Join(pc.Dir, convertRPCOut), []byte(cr[:len(cr)-1]), writeFilePerm); err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
 	}
 	if um := umb.String(); um != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, "update-map.txt"), []byte(um[:len(um)-1]), 0o666); err != nil {
+		if err := os.WriteFile(path.Join(pc.Dir, updateMapOut), []byte(um[:len(um)-1]), writeFilePerm); err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
 	}
@@ -159,7 +182,7 @@ func GenerateProject(pc *ProjectConfig) error {
 func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
-	err := generator.ExecuteTemplate(buffer, "out", struct {
+	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		TableComment     string
 		StructName       string // camel
 		SnakeStructName  string // snake
@@ -193,10 +216,10 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 		GroupPrefix:      strings.Trim(c.GroupPrefix, `/`),
 		IdComment:        gc.IdComment,
 		IdLabel:          convertComment(gc.IdComment, true),
-		StructInfo:       BuildStructInfo(gc.StructFields),
-		StructGetInfo:    BuildStructGetInfo(gc.StructFields),
-		StructCreateInfo: BuildStructCreateInfo(gc.StructFields),
-		StructUpdateInfo: BuildStructUpdateInfo(gc.StructFields),
+		StructInfo:       buildStructInfo(gc.StructFields),
+		StructGetInfo:    buildStructGetInfo(gc.StructFields),
+		StructCreateInfo: buildStructCreateInfo(gc.StructFields),
+		StructUpdateInfo: buildStructUpdateInfo(gc.StructFields),
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -210,14 +233,14 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 	return api, nil
 }
 
-// BuildStructInfo builds struct info.
-func BuildStructInfo(fs []util.StructField) string {
+// buildStructInfo builds struct info.
+func buildStructInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
 		field := fmt.Sprintf("\t%s %s `json:%q`", f.Name, f.Type, f.RawName)
 		if f.Comment != "" {
-			field += "// " + f.Comment
+			field += commentPrefix + f.Comment
 		}
 		b.WriteString(field + "\n")
 	}
@@ -225,8 +248,8 @@ func BuildStructInfo(fs []util.StructField) string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// BuildStructGetInfo builds struct create info.
-func BuildStructGetInfo(fs []util.StructField) string {
+// buildStructGetInfo builds struct create info.
+func buildStructGetInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
@@ -234,18 +257,17 @@ func BuildStructGetInfo(fs []util.StructField) string {
 			continue
 		}
 		tag := fmt.Sprintf("form:\"%s,optional\"", f.RawName)
-		enums := getEnums(f.Comment)
-		if contains([]string{"int", "int32"}, f.Type) && enums != "" {
-			f.Type = "*" + f.Type
+		if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
+			f.Type = toPointer(f.Type)
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\" label:%q",
-				enums, convertComment(f.Comment, true))
+				f.Enums, convertComment(f.Comment, true))
 		}
-		if contains([]string{"int32", "bool"}, f.Type) {
-			f.Type = "*" + f.Type
+		if contains([]string{util.GoInt32, util.GoBool}, f.Type) {
+			f.Type = toPointer(f.Type)
 		}
 		field := fmt.Sprintf("\t%s %s `%s`", f.Name, f.Type, tag)
 		if f.Comment != "" {
-			field += "// " + f.Comment
+			field += commentPrefix + f.Comment
 		}
 		b.WriteString(field + "\n")
 	}
@@ -253,41 +275,42 @@ func BuildStructGetInfo(fs []util.StructField) string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// BuildStructCreateInfo builds struct create info.
-func BuildStructCreateInfo(fs []util.StructField) string {
+// buildStructCreateInfo builds struct create info.
+func buildStructCreateInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
-		if f.IsPrimaryKey {
+		if f.IsPrimaryKey || IsAutoTimeField(f) {
 			continue
 		}
 		needLabel := false
-		enums := getEnums(f.Comment)
 		tag := fmt.Sprintf("json:\"%s,optional\"", f.RawName)
-		if !f.IsNullable {
+		if !f.IsNullable && f.Default == "" {
 			validate := " validate:\"required\""
 			tag = fmt.Sprintf("json:%q", f.RawName)
-			if contains([]string{"int", "int32"}, f.Type) && enums != "" {
-				f.Type = "*" + f.Type
-				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", enums)
+			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
+				f.Type = toPointer(f.Type)
+				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", f.Enums)
 			}
-			if contains([]string{"int32", "bool"}, f.Type) {
-				f.Type = "*" + f.Type
+			if contains([]string{util.GoInt32, util.GoBool}, f.Type) {
+				f.Type = toPointer(f.Type)
 			}
 			tag += validate
 			needLabel = true
-
-		} else if contains([]string{"int", "int32"}, f.Type) && enums != "" {
-			f.Type = "*" + f.Type
-			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\"", enums)
+		} else if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
+			f.Type = toPointer(f.Type)
+			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\"", f.Enums)
 			needLabel = true
+		}
+		if f.Default != "" {
+			f.Type = toPointer(f.Type)
 		}
 		if needLabel && f.Comment != "" {
 			tag += fmt.Sprintf(" label:%q", convertComment(f.Comment, true))
 		}
 		field := fmt.Sprintf("\t%s %s `%s`", f.Name, f.Type, tag)
 		if f.Comment != "" {
-			field += "// " + f.Comment
+			field += commentPrefix + f.Comment
 		}
 		b.WriteString(field + "\n")
 	}
@@ -295,36 +318,41 @@ func BuildStructCreateInfo(fs []util.StructField) string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// BuildStructUpdateInfo builds struct update info.
-func BuildStructUpdateInfo(fs []util.StructField) string {
+// buildStructUpdateInfo builds struct update info.
+func buildStructUpdateInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
+		if IsAutoTimeField(f) {
+			continue
+		}
 		prefix := "json"
 		if f.IsPrimaryKey {
 			prefix = "path"
 		}
 		needLabel := false
-		enums := getEnums(f.Comment)
 		tag := fmt.Sprintf("%s:\"%s,optional\"", prefix, f.RawName)
-		if !f.IsNullable {
+		if !f.IsNullable && f.Default == "" {
 			validate := " validate:\"required\""
 			tag = fmt.Sprintf("%s:%q", prefix, f.RawName)
-			if contains([]string{"int", "int32"}, f.Type) && enums != "" {
-				f.Type = "*" + f.Type
-				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", enums)
+			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
+				f.Type = toPointer(f.Type)
+				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", f.Enums)
 			}
-			if contains([]string{"int32", "bool"}, f.Type) {
-				f.Type = "*" + f.Type
+			if contains([]string{util.GoInt32, util.GoBool}, f.Type) {
+				f.Type = toPointer(f.Type)
 			}
 			tag += validate
 			needLabel = true
 		} else {
-			f.Type = "*" + f.Type
-			if contains([]string{"int", "int32"}, f.Type) && enums != "" {
-				tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\"", enums)
+			f.Type = toPointer(f.Type)
+			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
+				tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\"", f.Enums)
 				needLabel = true
 			}
+		}
+		if f.Default != "" {
+			f.Type = toPointer(f.Type)
 		}
 		if needLabel && f.Comment != "" {
 			tag += fmt.Sprintf(" label:%q", convertComment(f.Comment, true))
@@ -334,7 +362,7 @@ func BuildStructUpdateInfo(fs []util.StructField) string {
 		}
 		field := fmt.Sprintf("\t%s %s `%s`", f.Name, f.Type, tag)
 		if f.Comment != "" {
-			field += "// " + f.Comment
+			field += commentPrefix + f.Comment
 		}
 		b.WriteString(field + "\n")
 	}
@@ -345,7 +373,7 @@ func BuildStructUpdateInfo(fs []util.StructField) string {
 // GenerateServerAPI generates the output server api by api config and import apis.
 func GenerateServerAPI(c *Config, imports []string) (string, error) {
 	buffer := &bytes.Buffer{}
-	err := generator.ExecuteTemplate(buffer, "serverAPI", struct {
+	err := generator.ExecuteTemplate(buffer, serverAPITplName, struct {
 		Title   string
 		Desc    string
 		Author  string
@@ -372,14 +400,14 @@ func GenerateConvertAPI(c *Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 
-	err := generator.ExecuteTemplate(buffer, "convertAPI", struct {
+	err := generator.ExecuteTemplate(buffer, convertAPITplName, struct {
 		TableComment string
 		StructName   string
 		ConvertInfo  string
 	}{
 		TableComment: c.TableComment,
 		StructName:   c.StructName,
-		ConvertInfo:  BuildConvertAPIInfo(gc.StructFields),
+		ConvertInfo:  buildConvertAPIInfo(gc.StructFields),
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -393,8 +421,8 @@ func GenerateConvertAPI(c *Config, fs []*util.StructField) (string, error) {
 	return string(code[:len(code)-1]), nil
 }
 
-// BuildConvertAPIInfo builds convert api info.
-func BuildConvertAPIInfo(fs []util.StructField) string {
+// buildConvertAPIInfo builds convert api info.
+func buildConvertAPIInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
@@ -410,16 +438,19 @@ func GenerateConvertRPC(c *Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 
-	err := generator.ExecuteTemplate(buffer, "convertRPC", struct {
+	convertInfo, ifInfo := buildConvertRPCInfo(gc.StructFields)
+	err := generator.ExecuteTemplate(buffer, convertRPCTplName, struct {
 		TableComment string
 		StructName   string
 		ModelName    string
 		ConvertInfo  string
+		IfInfo       string
 	}{
 		TableComment: c.TableComment,
 		StructName:   c.StructName,
 		ModelName:    gc.ModelName,
-		ConvertInfo:  BuildConvertRPCInfo(gc.StructFields),
+		ConvertInfo:  convertInfo,
+		IfInfo:       ifInfo,
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -433,16 +464,24 @@ func GenerateConvertRPC(c *Config, fs []*util.StructField) (string, error) {
 	return string(code[:len(code)-1]), nil
 }
 
-// BuildConvertRPCInfo builds convert rpc info.
-func BuildConvertRPCInfo(fs []util.StructField) string {
-	b := &strings.Builder{}
+// buildConvertRPCInfo builds convert rpc info.
+func buildConvertRPCInfo(fs []StructField) (convertInfo, ifInfo string) {
+	var b, ib strings.Builder
 
 	for _, f := range fs {
-		field := fmt.Sprintf("%s: src.%s,\n", f.Name, initialismsReplacer.Replace(f.Name))
-		b.WriteString(field)
+		srcName := initialismsReplacer.Replace(f.Name)
+		if IsAutoTimeField(f) || IsTimeField(f) {
+			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, "0"))
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\n\tdst.%s = src.%s.UnixMilli()\n}\n", srcName, f.Name, srcName))
+		} else if !f.IsNullable && f.Default != "" {
+			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, getTypeEmptyString(f.Type)))
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\n\tdst.%s = *src.%s\n}\n", srcName, f.Name, srcName))
+		} else {
+			b.WriteString(fmt.Sprintf("%s: src.%s,\n", f.Name, srcName))
+		}
 	}
 
-	return strings.TrimSuffix(b.String(), "\n")
+	return strings.TrimSuffix(b.String(), "\n"), strings.TrimSuffix(ib.String(), "\n")
 }
 
 // GenerateUpdateMap generates the output updateMap by api config and structure fields.
@@ -455,21 +494,29 @@ func GenerateUpdateMap(c *Config, fs []*util.StructField) (string, error) {
 		symbol, c.StructName, c.TableComment, symbol))
 
 	for _, field := range gc.StructFields {
-		if field.IsPrimaryKey {
+		if field.IsPrimaryKey || IsAutoTimeField(field) {
 			continue
 		}
-		err := generator.ExecuteTemplate(buffer, "updateMap", struct {
-			MemberName       string
-			MemberRawName    string
-			ObjectName       string // lower camel
-			ObjectMemberName string
-			IsNullable       bool
+		err := generator.ExecuteTemplate(buffer, updateMapTplName, struct {
+			MemberName           string
+			MemberRawName        string
+			MemberLowerCamelName string
+			ObjectName           string // lower camel
+			ObjectMemberName     string
+			HasDefault           bool
+			IsNullable           bool
+			IsTimeField          bool
+			IsPointer            bool
 		}{
-			MemberName:       field.Name,
-			MemberRawName:    field.RawName,
-			ObjectName:       strcase.ToLowerCamel(gc.SnakeStructName),
-			ObjectMemberName: initialismsReplacer.Replace(field.Name),
-			IsNullable:       true,
+			MemberName:           field.Name,
+			MemberRawName:        field.RawName,
+			MemberLowerCamelName: strcase.ToLowerCamel(field.Name),
+			ObjectName:           strcase.ToLowerCamel(gc.SnakeStructName),
+			ObjectMemberName:     initialismsReplacer.Replace(field.Name),
+			HasDefault:           field.Default != "",
+			IsNullable:           field.IsNullable,
+			IsTimeField:          IsTimeField(field),
+			IsPointer:            isPointerWhenUpdated(field),
 		})
 		if err != nil {
 			return "", errors.WithMessage(err, "generator.ExecuteTemplate err")

@@ -1,17 +1,13 @@
 run:
+  go: '1.16'
   concurrency: 4
   timeout: 5m
   tests: true
 
 linters-settings:
-  gosimple:
-    go: "1.16"
-    # https://staticcheck.io/docs/options#checks
-    checks: [ "all" ]
-  staticcheck:
-    go: "1.16"
-    # https://staticcheck.io/docs/options#checks
-    checks: [ "all" ]
+  errcheck:
+    # https://github.com/kisielk/errcheck#errcheck
+    ignore: fmt:.*,os:.*
   goconst:
     # https://github.com/jgautheron/goconst#usage
     ignore-tests: true
@@ -22,9 +18,11 @@ linters-settings:
     disabled-checks:
       - ifElseChain
   gofumpt:
-    lang-version: "1.16"
     # https://github.com/mvdan/gofumpt#gofumpt
     extra-rules: true
+  gosimple:
+    # https://staticcheck.io/docs/options#checks
+    checks: [ "all" ]
   revive:
     ignore-generated-header: true
     severity: warning
@@ -36,7 +34,6 @@ linters-settings:
       - name: var-declaration
       - name: unexported-return
       - name: errorf
-      # - name: blank-imports
       - name: context-as-argument
       - name: dot-imports
       - name: error-return
@@ -45,14 +42,13 @@ linters-settings:
       - name: exported
       - name: if-return
       - name: increment-decrement
-      # - name: var-naming
-      # - name: package-comments
+      - name: var-naming
+        arguments:
+          - [ "ID" ] # allow list
       - name: range
       - name: receiver-naming
       - name: indent-error-flow
       - name: argument-limit
-      # - name: cyclomatic
-      - name: max-public-structs
       - name: file-header
       - name: empty-block
       - name: superfluous-else
@@ -64,7 +60,6 @@ linters-settings:
       - name: unused-parameter
       - name: unreachable-code
       # - name: add-constant
-      # - name: flag-parameter
       - name: unnecessary-stmt
       - name: struct-tag
       - name: modifies-value-receiver
@@ -78,14 +73,9 @@ linters-settings:
       - name: waitgroup-by-value
       - name: atomic
       - name: empty-lines
-      # - name: line-length-limit
       - name: call-to-gc
       - name: duplicated-imports
       - name: import-shadowing
-      # - name: bare-return
-      - name: unused-receiver
-      # - name: unhandled-error
-      # - name: cognitive-complexity
       - name: string-of-int
       - name: string-format
       - name: early-return
@@ -93,17 +83,22 @@ linters-settings:
       - name: identical-branches
       - name: defer
       - name: unexported-naming
-      # - name: function-length
       - name: nested-structs
       - name: useless-break
       - name: banned-characters
       - name: optimize-operands-order
-      - name: use-any
+      # - name: use-any
       - name: datarace
       - name: comment-spacings
       - name: redundant-import-alias
       - name: import-alias-naming
       - name: enforce-map-style
+  ireturn:
+    # https://github.com/butuzov/ireturn#usage
+    allow: [ "anon", "error","empty", "stdlib", "generic" ]
+  staticcheck:
+    # https://staticcheck.io/docs/options#checks
+    checks: [ "all" ]
   stylecheck:
     # https://staticcheck.io/docs/options#checks
     checks: [ "all", "-ST1000", "-ST1003" ]
@@ -111,28 +106,94 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - typecheck
+    - asasalint
     - asciicheck
     - bidichk
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - decorder
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - errcheck
+    # - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exportloopref
     - forcetypeassert
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
     - goconst
     - gocritic
+    # - gocyclo
+    - godot
+    - godox
+    - gofmt
     - gofumpt
+    - goheader
+    - goimports
+    # - gomnd
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosimple
+    - govet
+    - grouper
+    - importas
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - ireturn
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
     - nilerr
     - nilnil
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - perfsprint
+    - prealloc
     - predeclared
+    - promlinter
+    - protogetter
+    - reassign
     - revive
+    - rowserrcheck
+    - sloglint
+    - staticcheck
     - stylecheck
+    - tenv
+    - testableexamples
+    - testifylint
+    - thelper
+    - tparallel
+    - typecheck
     - unconvert
-    - errcheck
-    - godot
+    - unparam
+    - unused
+    - usestdlibvars
     - wastedassign
+    - whitespace
+    - wrapcheck
+    - zerologlint
 
 issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    - path: _test.go
+      linters:
+        - dupl
+        - errcheck
+        - unparam

@@ -10,6 +10,8 @@ import (
 const (
 	// codeFailure failure code.
 	codeFailure = 1
+	// writeFilePerm default perm for writing file.
+	writeFilePerm = 0o666
 )
 
 var rootCmd = &cobra.Command{

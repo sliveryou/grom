@@ -59,7 +59,7 @@ func init() {
 }
 
 // generateCode generates the output code by command config and structure fields.
-func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
+func generateCode(cc *CmdConfig, fields []*StructField) (string, error) {
 	buffer := &bytes.Buffer{}
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		Table              string
@@ -73,7 +73,7 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 		EnableFieldComment bool
 		NeedImport         bool
 		EnableGoTime       bool
-		EnableSqlNull      bool
+		EnableSQLNull      bool
 		EnableGureguNull   bool
 		EnableTableName    bool
 		EnableTableIndex   bool
@@ -88,9 +88,9 @@ func generateCode(cc *CMDConfig, fields []*StructField) (string, error) {
 		TableIndexes:       uniqueStrings(tableIndexes),
 		TableUniques:       uniqueStrings(tableUniques),
 		EnableFieldComment: cc.EnableFieldComment,
-		NeedImport:         cc.EnableGoTime || cc.EnableSqlNull || cc.EnableGureguNull,
+		NeedImport:         cc.EnableGoTime || cc.EnableSQLNull || cc.EnableGureguNull,
 		EnableGoTime:       cc.EnableGoTime,
-		EnableSqlNull:      cc.EnableSqlNull,
+		EnableSQLNull:      cc.EnableSQLNull,
 		EnableGureguNull:   cc.EnableGureguNull,
 		EnableTableName:    cc.EnableGormTag || cc.EnableXormTag || cc.EnableBeegoTag || cc.EnableGoroseTag || cc.EnableGormV2Tag,
 		EnableTableIndex:   cc.EnableBeegoTag && len(tableIndexes) != 0,

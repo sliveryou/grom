@@ -7,7 +7,7 @@ import (
 )
 
 func TestConvertTable(t *testing.T) {
-	config := CMDConfig{
+	config := CmdConfig{
 		DBConfig: DBConfig{
 			Host:     "localhost",
 			Port:     3306,
@@ -19,10 +19,10 @@ func TestConvertTable(t *testing.T) {
 		PackageName:        "package_name",
 		StructName:         "struct_name",
 		EnableFieldComment: true,
-		EnableSqlNull:      false,
+		EnableSQLNull:      false,
 		EnableGureguNull:   false,
-		EnableJsonTag:      true,
-		EnableXmlTag:       false,
+		EnableJSONTag:      true,
+		EnableXMLTag:       false,
 		EnableGormTag:      true,
 		EnableXormTag:      false,
 		EnableBeegoTag:     false,
@@ -47,27 +47,27 @@ func TestConvertTable(t *testing.T) {
 func TestConvertDataType(t *testing.T) {
 	cases := []struct {
 		ci          ColumnInfo
-		cc          CMDConfig
+		cc          CmdConfig
 		expectation string
 	}{
 		{
 			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
-			CMDConfig{EnableSqlNull: false, EnableGureguNull: false},
+			CmdConfig{EnableSQLNull: false, EnableGureguNull: false},
 			"int32",
 		},
 		{
 			ColumnInfo{DataType: "tinyint", IsNullable: false, IsUnsigned: true},
-			CMDConfig{EnableSqlNull: false, EnableGureguNull: false},
+			CmdConfig{EnableSQLNull: false, EnableGureguNull: false},
 			"uint32",
 		},
 		{
 			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: false},
-			CMDConfig{EnableSqlNull: true, EnableGureguNull: false},
+			CmdConfig{EnableSQLNull: true, EnableGureguNull: false},
 			"sql.NullInt32",
 		},
 		{
 			ColumnInfo{DataType: "tinyint", IsNullable: true, IsUnsigned: true},
-			CMDConfig{EnableSqlNull: true, EnableGureguNull: true},
+			CmdConfig{EnableSQLNull: true, EnableGureguNull: true},
 			"null.Int",
 		},
 	}
@@ -111,7 +111,7 @@ func TestConvertName(t *testing.T) {
 	}
 }
 
-func TestGetJsonTag(t *testing.T) {
+func TestGetJSONTag(t *testing.T) {
 	cases := []struct {
 		ci          ColumnInfo
 		expectation string
@@ -121,15 +121,15 @@ func TestGetJsonTag(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		output := getJsonTag(&c.ci)
+		output := getJSONTag(&c.ci)
 		if output != c.expectation {
-			t.Errorf("getJsonTag failed, expectation:%s, output:%s",
+			t.Errorf("getJSONTag failed, expectation:%s, output:%s",
 				c.expectation, output)
 		}
 	}
 }
 
-func TestGetXmlTag(t *testing.T) {
+func TestGetXMLTag(t *testing.T) {
 	cases := []struct {
 		ci          ColumnInfo
 		expectation string
@@ -139,9 +139,9 @@ func TestGetXmlTag(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		output := getXmlTag(&c.ci)
+		output := getXMLTag(&c.ci)
 		if output != c.expectation {
-			t.Errorf("getXmlTag failed, expectation:%s, output:%s",
+			t.Errorf("getXMLTag failed, expectation:%s, output:%s",
 				c.expectation, output)
 		}
 	}

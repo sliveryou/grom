@@ -86,7 +86,7 @@ func convertFunc(_ *cobra.Command, _ []string) error {
 }
 
 func saveOutputToFile(out string) error {
-	err := os.WriteFile(outputFilePath, []byte(out), 0o666)
+	err := os.WriteFile(outputFilePath, []byte(out), writeFilePerm)
 	if err != nil {
 		return errors.WithMessage(err, "os.WriteFile err")
 	}
@@ -96,8 +96,8 @@ func saveOutputToFile(out string) error {
 	return nil
 }
 
-func getCmdConfig() (*util.CMDConfig, error) {
-	config := util.CMDConfig{}
+func getCmdConfig() (*util.CmdConfig, error) {
+	config := util.CmdConfig{}
 
 	if filePath != "" {
 		content, err := os.ReadFile(filePath)
@@ -149,13 +149,13 @@ func getCmdConfig() (*util.CMDConfig, error) {
 			case "FIELD_COMMENT":
 				config.EnableFieldComment = true
 			case "SQL_NULL":
-				config.EnableSqlNull = true
+				config.EnableSQLNull = true
 			case "GUREGU_NULL":
 				config.EnableGureguNull = true
 			case "JSON_TAG":
-				config.EnableJsonTag = true
+				config.EnableJSONTag = true
 			case "XML_TAG":
-				config.EnableXmlTag = true
+				config.EnableXMLTag = true
 			case "GORM_TAG":
 				config.EnableGormTag = true
 			case "XORM_TAG":

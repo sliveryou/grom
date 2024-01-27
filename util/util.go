@@ -9,7 +9,7 @@ import (
 )
 
 // ConvertTable converts mysql table fields to golang model structure by command config.
-func ConvertTable(cc CMDConfig) (string, error) {
+func ConvertTable(cc CmdConfig) (string, error) {
 	defer CloseDB()
 
 	fields, err := GetFields(&cc)
@@ -21,7 +21,7 @@ func ConvertTable(cc CMDConfig) (string, error) {
 }
 
 // GetFields gets golang structure fields converted by mysql table fields.
-func GetFields(cc *CMDConfig) ([]*StructField, error) {
+func GetFields(cc *CmdConfig) ([]*StructField, error) {
 	if cc.PackageName == "" {
 		cc.PackageName = "model"
 	}
@@ -40,16 +40,16 @@ func GetFields(cc *CMDConfig) ([]*StructField, error) {
 		return nil, errors.WithMessage(err, "getColumnInfos err")
 	}
 
-	var fields []*StructField
+	fields := make([]*StructField, 0, len(cis))
 	for i := range cis {
 		ci := cis[i]
 		var tags []string
 
-		if cc.EnableJsonTag {
-			tags = append(tags, getJsonTag(ci))
+		if cc.EnableJSONTag {
+			tags = append(tags, getJSONTag(ci))
 		}
-		if cc.EnableXmlTag {
-			tags = append(tags, getXmlTag(ci))
+		if cc.EnableXMLTag {
+			tags = append(tags, getXMLTag(ci))
 		}
 		if cc.EnableGormTag {
 			tags = append(tags, getGormTag(ci))
@@ -89,7 +89,7 @@ func GetFields(cc *CMDConfig) ([]*StructField, error) {
 }
 
 // convertDataType converts the mysql data type to golang data type.
-func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
+func convertDataType(ci *ColumnInfo, cc *CmdConfig) string {
 	switch ci.DataType {
 	case "tinyint", "smallint", "mediumint":
 		isBool := false
@@ -102,11 +102,11 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 					return GureguNullBool
 				}
 				return GureguNullInt
-			} else if cc.EnableSqlNull {
+			} else if cc.EnableSQLNull {
 				if isBool {
-					return SqlNullBool
+					return SQLNullBool
 				}
-				return SqlNullInt32
+				return SQLNullInt32
 			}
 		}
 		if ci.IsUnsigned {
@@ -123,8 +123,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullInt
-			} else if cc.EnableSqlNull {
-				return SqlNullInt64
+			} else if cc.EnableSQLNull {
+				return SQLNullInt64
 			}
 		}
 		if ci.IsUnsigned {
@@ -135,8 +135,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullInt
-			} else if cc.EnableSqlNull {
-				return SqlNullInt64
+			} else if cc.EnableSQLNull {
+				return SQLNullInt64
 			}
 		}
 		if ci.IsUnsigned {
@@ -147,8 +147,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullString
-			} else if cc.EnableSqlNull {
-				return SqlNullString
+			} else if cc.EnableSQLNull {
+				return SQLNullString
 			}
 		}
 		return GoString
@@ -156,8 +156,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullTime
-			} else if cc.EnableSqlNull {
-				return SqlNullTime
+			} else if cc.EnableSQLNull {
+				return SQLNullTime
 			}
 		}
 		return GoTime
@@ -165,8 +165,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullFloat
-			} else if cc.EnableSqlNull {
-				return SqlNullFloat64
+			} else if cc.EnableSQLNull {
+				return SQLNullFloat64
 			}
 		}
 		return GoFloat32
@@ -174,8 +174,8 @@ func convertDataType(ci *ColumnInfo, cc *CMDConfig) string {
 		if ci.IsNullable {
 			if cc.EnableGureguNull {
 				return GureguNullFloat
-			} else if cc.EnableSqlNull {
-				return SqlNullFloat64
+			} else if cc.EnableSQLNull {
+				return SQLNullFloat64
 			}
 		}
 		return GoFloat64
@@ -221,13 +221,13 @@ func convertName(name string, enableInitialism ...bool) string {
 	return cn
 }
 
-// getJsonTag returns the tag string of json.
-func getJsonTag(ci *ColumnInfo) string {
+// getJSONTag returns the tag string of json.
+func getJSONTag(ci *ColumnInfo) string {
 	return fmt.Sprintf("json:%q", ci.Name)
 }
 
-// getXmlTag returns the tag string of xml.
-func getXmlTag(ci *ColumnInfo) string {
+// getXMLTag returns the tag string of xml.
+func getXMLTag(ci *ColumnInfo) string {
 	return fmt.Sprintf("xml:%q", ci.Name)
 }
 

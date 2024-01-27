@@ -4,7 +4,7 @@ package {{.PackageName}}
 import (
 	{{ if .EnableGureguNull }}
 		"gopkg.in/guregu/null.v4"
-	{{ else if .EnableSqlNull }}
+	{{ else if .EnableSQLNull }}
 		"database/sql"
 	{{ else if .EnableGoTime }}
 		"time"

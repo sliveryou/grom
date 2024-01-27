@@ -30,7 +30,7 @@ func init() {
 }
 
 func generateFunc(_ *cobra.Command, _ []string) error {
-	err := os.WriteFile(fileName, []byte(fileInfo), 0o666)
+	err := os.WriteFile(fileName, []byte(fileInfo), writeFilePerm)
 	if err != nil {
 		return errors.WithMessage(err, "os.WriteFile err")
 	}
@@ -41,7 +41,7 @@ func generateFunc(_ *cobra.Command, _ []string) error {
 }
 
 func generateFileInfo() string {
-	c := util.CMDConfig{
+	c := util.CmdConfig{
 		DBConfig: util.DBConfig{
 			Host:     "localhost",
 			Port:     3306,
@@ -54,10 +54,10 @@ func generateFileInfo() string {
 		StructName:         "struct_name",
 		EnableInitialism:   true,
 		EnableFieldComment: true,
-		EnableSqlNull:      false,
+		EnableSQLNull:      false,
 		EnableGureguNull:   false,
-		EnableJsonTag:      true,
-		EnableXmlTag:       false,
+		EnableJSONTag:      true,
+		EnableXMLTag:       false,
 		EnableGormTag:      false,
 		EnableXormTag:      false,
 		EnableBeegoTag:     false,

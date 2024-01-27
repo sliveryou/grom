@@ -71,12 +71,12 @@ const (
 	GureguNullBool   = "null.Bool"
 	GureguNullTime   = "null.Time"
 
-	SqlNullString  = "sql.NullString"
-	SqlNullInt32   = "sql.NullInt32"
-	SqlNullInt64   = "sql.NullInt64"
-	SqlNullFloat64 = "sql.NullFloat64"
-	SqlNullBool    = "sql.NullBool"
-	SqlNullTime    = "sql.NullTime"
+	SQLNullString  = "sql.NullString"
+	SQLNullInt32   = "sql.NullInt32"
+	SQLNullInt64   = "sql.NullInt64"
+	SQLNullFloat64 = "sql.NullFloat64"
+	SQLNullBool    = "sql.NullBool"
+	SQLNullTime    = "sql.NullTime"
 
 	GoString      = "string"
 	GoBytes       = "[]byte"
@@ -93,17 +93,17 @@ const (
 	GoPointerTime = "*time.Time"
 )
 
-// CMDConfig represents the config of the running grom command line.
-type CMDConfig struct {
+// CmdConfig represents the config of the running grom command line.
+type CmdConfig struct {
 	DBConfig
 	PackageName        string `json:"package_name"`
 	StructName         string `json:"struct_name"`
 	EnableInitialism   bool   `json:"enable_initialism"`
 	EnableFieldComment bool   `json:"enable_field_comment"`
-	EnableSqlNull      bool   `json:"enable_sql_null"`
+	EnableSQLNull      bool   `json:"enable_sql_null"`
 	EnableGureguNull   bool   `json:"enable_guregu_null"`
-	EnableJsonTag      bool   `json:"enable_json_tag"`
-	EnableXmlTag       bool   `json:"enable_xml_tag"`
+	EnableJSONTag      bool   `json:"enable_json_tag"`
+	EnableXMLTag       bool   `json:"enable_xml_tag"`
 	EnableGormTag      bool   `json:"enable_gorm_tag"`
 	EnableXormTag      bool   `json:"enable_xorm_tag"`
 	EnableBeegoTag     bool   `json:"enable_beego_tag"`

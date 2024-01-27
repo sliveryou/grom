@@ -17,8 +17,15 @@ func CloseDB() {
 	}
 }
 
+// closeRows closes the db rows.
+func closeRows(rows *sql.Rows) {
+	if err := rows.Close(); err != nil {
+		color.Red.Println("rows.Close err:", err)
+	}
+}
+
 // getDB returns the opened db connection.
-func getDB(c *CMDConfig) (*sql.DB, error) {
+func getDB(c *CmdConfig) (*sql.DB, error) {
 	if db != nil {
 		return db, nil
 	}
@@ -36,7 +43,7 @@ func getDB(c *CMDConfig) (*sql.DB, error) {
 }
 
 // getTableComment returns the comment of table.
-func getTableComment(c *CMDConfig) (string, error) {
+func getTableComment(c *CmdConfig) (string, error) {
 	db, err := getDB(c)
 	if err != nil {
 		return "", err
@@ -50,29 +57,23 @@ func getTableComment(c *CMDConfig) (string, error) {
 	if err != nil {
 		return "", errors.WithMessage(err, "db.Query err")
 	}
-
-	if rows == nil {
-		return "", errors.New("no rows returned")
-	}
-	defer func(rows *sql.Rows) {
-		if err := rows.Close(); err != nil {
-			color.Red.Println("rows.Close err:", err)
-		}
-	}(rows)
+	defer closeRows(rows)
 
 	var comment string
 	for rows.Next() {
-		err = rows.Scan(&comment)
-		if err != nil {
+		if err = rows.Scan(&comment); err != nil {
 			return "", errors.WithMessage(err, "rows.Scan err")
 		}
+	}
+	if err = rows.Err(); err != nil {
+		return "", errors.WithMessage(err, "rows.Scan err")
 	}
 
 	return comment, nil
 }
 
 // getColumnInfos returns the details of columns.
-func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
+func getColumnInfos(c *CmdConfig) ([]*ColumnInfo, error) {
 	db, err := getDB(c)
 	if err != nil {
 		return nil, err
@@ -89,15 +90,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 	if err != nil {
 		return nil, errors.WithMessage(err, "db.Query err")
 	}
-
-	if rows == nil {
-		return nil, errors.New("no rows returned")
-	}
-	defer func(rows *sql.Rows) {
-		if err := rows.Close(); err != nil {
-			color.Red.Println("rows.Close err:", err)
-		}
-	}(rows)
+	defer closeRows(rows)
 
 	columnInfos := make([]*ColumnInfo, 0)
 	indexInfos, err := getIndexInfos(c)
@@ -117,8 +110,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 			cml, np, nc sql.NullInt64
 		)
 
-		err = rows.Scan(&cn, &op, &cd, &in, &dt, &cml, &np, &nc, &ct, &ck, &e, &cc)
-		if err != nil {
+		if err = rows.Scan(&cn, &op, &cd, &in, &dt, &cml, &np, &nc, &ct, &ck, &e, &cc); err != nil {
 			return nil, errors.WithMessage(err, "rows.Scan err")
 		}
 
@@ -132,6 +124,9 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 		ci.Indexes, ci.UniqueIndexes = getColumnIndexInfos(indexInfos, ci.Name)
 		columnInfos = append(columnInfos, &ci)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.WithMessage(err, "rows.Scan err")
+	}
 
 	if c.EnableBeegoTag {
 		tableIndexes, tableUniques = getTableIndexes(indexInfos, c.EnableInitialism)
@@ -141,7 +136,7 @@ func getColumnInfos(c *CMDConfig) ([]*ColumnInfo, error) {
 }
 
 // getIndexInfos returns the details of indexes.
-func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
+func getIndexInfos(c *CmdConfig) ([]*IndexInfo, error) {
 	db, err := getDB(c)
 	if err != nil {
 		return nil, err
@@ -156,18 +151,9 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 	if err != nil {
 		return nil, errors.WithMessage(err, "db.Query err")
 	}
+	defer closeRows(rows)
 
 	indexInfos := make([]*IndexInfo, 0)
-
-	if rows == nil {
-		return indexInfos, nil
-	}
-	defer func(rows *sql.Rows) {
-		if err := rows.Close(); err != nil {
-			color.Red.Println("rows.Close err:", err)
-		}
-	}(rows)
-
 	for rows.Next() {
 		var (
 			// NON_UNIQUE, SEQ_IN_INDEX
@@ -176,8 +162,7 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 			in, cn, ic string
 		)
 
-		err = rows.Scan(&nu, &in, &sii, &cn, &ic)
-		if err != nil {
+		if err = rows.Scan(&nu, &in, &sii, &cn, &ic); err != nil {
 			return nil, errors.WithMessage(err, "rows.Scan err")
 		}
 
@@ -190,6 +175,9 @@ func getIndexInfos(c *CMDConfig) ([]*IndexInfo, error) {
 		}
 
 		indexInfos = append(indexInfos, &ii)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.WithMessage(err, "rows.Scan err")
 	}
 
 	return indexInfos, nil
@@ -208,7 +196,7 @@ func getColumnIndexInfos(indexInfos []*IndexInfo, columnName string) (columnInde
 		}
 	}
 
-	return
+	return columnIndexes, columnUniques
 }
 
 // getTableIndexes returns the details of table indexes and table unique indexes.
@@ -242,5 +230,5 @@ func getTableIndexes(indexInfos []*IndexInfo, enableInitialism ...bool) (tableIn
 		}
 	}
 
-	return
+	return tableIndexes, tableUniques
 }

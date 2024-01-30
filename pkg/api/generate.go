@@ -195,7 +195,10 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 		ServiceName      string
 		ServerPrefix     string
 		GroupPrefix      string
+		IdName           string
+		IdType           string
 		IdComment        string
+		IdRawName        string
 		IdLabel          string
 		StructInfo       string
 		StructGetInfo    string
@@ -214,7 +217,10 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 		ServiceName:      c.ServiceName,
 		ServerPrefix:     strings.Trim(c.ServerPrefix, `/`),
 		GroupPrefix:      strings.Trim(c.GroupPrefix, `/`),
+		IdName:           gc.IdName,
+		IdType:           gc.IdType,
 		IdComment:        gc.IdComment,
+		IdRawName:        gc.IdRawName,
 		IdLabel:          convertComment(gc.IdComment, true),
 		StructInfo:       buildStructInfo(gc.StructFields),
 		StructGetInfo:    buildStructGetInfo(gc.StructFields),

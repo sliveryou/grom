@@ -17,7 +17,7 @@ service {{ .ServiceName }} {
         summary: "查询{{ .TableComment }}"
     )
     @handler Get{{ .StructName }}
-    get /{{ .SnakeStructName }}/:id (Get{{ .StructName }}Req) returns (Get{{ .StructName }}Resp)
+    get /{{ .SnakeStructName }}/:{{ .IdRawName }} (Get{{ .StructName }}Req) returns (Get{{ .StructName }}Resp)
 
     @doc (
         summary: "查询{{ .TableComment }}分页"
@@ -35,13 +35,13 @@ service {{ .ServiceName }} {
         summary: "更新{{ .TableComment }}"
     )
     @handler Update{{ .StructName }}
-    put /{{ .SnakeStructName }}/:id (Update{{ .StructName }}Req) returns (Update{{ .StructName }}Resp)
+    put /{{ .SnakeStructName }}/:{{ .IdRawName }} (Update{{ .StructName }}Req) returns (Update{{ .StructName }}Resp)
 
     @doc (
         summary: "删除{{ .TableComment }}"
     )
     @handler Delete{{ .StructName }}
-    delete /{{ .SnakeStructName }}/:id (Delete{{ .StructName }}Req) returns (Delete{{ .StructName }}Resp)
+    delete /{{ .SnakeStructName }}/:{{ .IdRawName }} (Delete{{ .StructName }}Req) returns (Delete{{ .StructName }}Resp)
 }
 
 // -------------------- {{ .TableComment }} {{ .StructName }} -------------------- //
@@ -52,7 +52,7 @@ type {{ .StructName }} {
 
 // Get{{ .StructName }}Req 查询{{ .TableComment }}请求
 type Get{{ .StructName }}Req {
-    Id int64 `path:"id" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
+    {{ .IdName }} {{ .IdType }} `path:"{{ .IdRawName }}" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
 }
 
 // Get{{ .StructName }}Resp 查询{{ .TableComment }}响应
@@ -96,10 +96,10 @@ type Update{{ .StructName }}Resp {
 
 // Delete{{ .StructName }}Req 删除{{ .TableComment }}请求
 type Delete{{ .StructName }}Req {
-    Id int64 `path:"id" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
+    {{ .IdName }} {{ .IdType }} `path:"{{ .IdRawName }}" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
 }
 
 // Delete{{ .StructName }}Resp 删除{{ .TableComment }}响应
 type Delete{{ .StructName }}Resp {
-    Id int64 `json:"id"` // {{ .IdComment }}
+    {{ .IdName }} {{ .IdType }} `json:"{{ .IdRawName }}"` // {{ .IdComment }}
 }

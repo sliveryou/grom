@@ -96,7 +96,10 @@ func IsAutoTimeField(f StructField) bool {
 }
 
 type generateConfig struct {
+	IdName          string
+	IdType          string
 	IdComment       string
+	IdRawName       string
 	SnakeStructName string // snake
 	ModelName       string // camel
 	GroupName       string // lower
@@ -105,7 +108,7 @@ type generateConfig struct {
 
 func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 	gc := generateConfig{
-		IdComment:       defaultIdComment,
+		IdComment:       c.TableComment + defaultIdComment,
 		SnakeStructName: strcase.ToSnake(c.StructName),
 		ModelName:       c.StructName,
 		GroupName:       strings.ToLower(c.StructName),
@@ -123,14 +126,6 @@ func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 		if len(c.IgnoreFields) > 0 && contains(c.IgnoreFields, fi.RawName) {
 			continue
 		}
-		// get id comment
-		if fi.IsPrimaryKey {
-			if fi.Comment != "" {
-				gc.IdComment = fi.Comment
-			} else {
-				gc.IdComment = c.TableComment + defaultIdComment
-			}
-		}
 		// remove unsigned
 		fi.Type = strings.TrimPrefix(fi.Type, unsignedPrefix)
 		// convert time.Time to int64
@@ -147,6 +142,15 @@ func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 			} else {
 				// convert int to int64 adapted to protobuf
 				fi.Type = util.GoInt64
+			}
+		}
+		// get id info
+		if fi.IsPrimaryKey {
+			gc.IdName = fi.Name
+			gc.IdType = fi.Type
+			gc.IdRawName = fi.RawName
+			if fi.Comment != "" {
+				gc.IdComment = fi.Comment
 			}
 		}
 		fields = append(fields, fi)

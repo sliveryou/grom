@@ -122,7 +122,7 @@ type DBConfig struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Database string `json:"database"`
-	Table    string `json:"table"`
+	Table    string `json:"table,omitempty"`
 }
 
 // StructField represents the field of the generated model structure.

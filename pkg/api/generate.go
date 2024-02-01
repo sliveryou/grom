@@ -183,49 +183,53 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
-		TableComment     string
-		StructName       string // camel
-		SnakeStructName  string // snake
-		GroupName        string // lower
-		Title            string
-		Desc             string
-		Author           string
-		Email            string
-		Version          string
-		ServiceName      string
-		ServerPrefix     string
-		GroupPrefix      string
-		IdName           string
-		IdType           string
-		IdComment        string
-		IdRawName        string
-		IdLabel          string
-		StructInfo       string
-		StructGetInfo    string
-		StructCreateInfo string
-		StructUpdateInfo string
+		TableComment          string
+		StructName            string // camel
+		SnakeStructName       string // snake
+		GroupName             string // lower
+		Title                 string
+		Desc                  string
+		Author                string
+		Email                 string
+		Version               string
+		ServiceName           string
+		ServerPrefix          string
+		GroupPrefix           string
+		IdName                string
+		IdType                string
+		IdComment             string
+		IdRawName             string
+		IdLabel               string
+		StructInfo            string
+		StructGetInfo         string
+		StructCreateInfo      string
+		StructUpdateInfo      string
+		StructFilterInfo      string
+		StructBatchUpdateInfo string
 	}{
-		TableComment:     c.TableComment,
-		StructName:       c.StructName,
-		SnakeStructName:  gc.SnakeStructName,
-		GroupName:        gc.GroupName,
-		Title:            c.Title,
-		Desc:             c.Desc,
-		Author:           c.Author,
-		Email:            c.Email,
-		Version:          c.Version,
-		ServiceName:      c.ServiceName,
-		ServerPrefix:     strings.Trim(c.ServerPrefix, `/`),
-		GroupPrefix:      strings.Trim(c.GroupPrefix, `/`),
-		IdName:           gc.IdName,
-		IdType:           gc.IdType,
-		IdComment:        gc.IdComment,
-		IdRawName:        gc.IdRawName,
-		IdLabel:          convertComment(gc.IdComment, true),
-		StructInfo:       buildStructInfo(gc.StructFields),
-		StructGetInfo:    buildStructGetInfo(gc.StructFields),
-		StructCreateInfo: buildStructCreateInfo(gc.StructFields),
-		StructUpdateInfo: buildStructUpdateInfo(gc.StructFields),
+		TableComment:          c.TableComment,
+		StructName:            c.StructName,
+		SnakeStructName:       gc.SnakeStructName,
+		GroupName:             gc.GroupName,
+		Title:                 c.Title,
+		Desc:                  c.Desc,
+		Author:                c.Author,
+		Email:                 c.Email,
+		Version:               c.Version,
+		ServiceName:           c.ServiceName,
+		ServerPrefix:          strings.Trim(c.ServerPrefix, `/`),
+		GroupPrefix:           strings.Trim(c.GroupPrefix, `/`),
+		IdName:                gc.IdName,
+		IdType:                gc.IdType,
+		IdComment:             gc.IdComment,
+		IdRawName:             gc.IdRawName,
+		IdLabel:               convertComment(gc.IdComment, true),
+		StructInfo:            buildStructInfo(gc.StructFields),
+		StructGetInfo:         buildStructGetInfo(gc.StructFields),
+		StructCreateInfo:      buildStructCreateInfo(gc.StructFields),
+		StructUpdateInfo:      buildStructUpdateInfo(gc.StructFields),
+		StructFilterInfo:      strings.ReplaceAll(buildStructGetInfo(gc.StructFields), "`form:", "`json:"),
+		StructBatchUpdateInfo: buildStructUpdateInfo(gc.StructFields, true),
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -263,6 +267,9 @@ func buildStructGetInfo(fs []StructField) string {
 			continue
 		}
 		tag := fmt.Sprintf("form:\"%s,optional\"", f.RawName)
+		if f.IsNullable {
+			f.Type = toPointer(f.Type)
+		}
 		if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
 			f.Type = toPointer(f.Type)
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\" label:%q",
@@ -325,8 +332,12 @@ func buildStructCreateInfo(fs []StructField) string {
 }
 
 // buildStructUpdateInfo builds struct update info.
-func buildStructUpdateInfo(fs []StructField) string {
+func buildStructUpdateInfo(fs []StructField, ignorePrimaryKey ...bool) string {
 	b := &strings.Builder{}
+	ipk := false
+	if len(ignorePrimaryKey) > 0 {
+		ipk = ignorePrimaryKey[0]
+	}
 
 	for _, f := range fs {
 		if IsAutoTimeField(f) {
@@ -334,6 +345,9 @@ func buildStructUpdateInfo(fs []StructField) string {
 		}
 		prefix := "json"
 		if f.IsPrimaryKey {
+			if ipk {
+				continue
+			}
 			prefix = "path"
 		}
 		needLabel := false

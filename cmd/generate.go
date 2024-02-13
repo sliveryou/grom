@@ -19,7 +19,7 @@ var (
 var generateCmd = &cobra.Command{
 	Use:     "generate",
 	Short:   "Generate grom configuration file",
-	Long:    fmt.Sprintf("Generate grom configuration file like this:\n%s", generateFileInfo()),
+	Long:    "Generate grom configuration file like this:\n" + generateFileInfo(),
 	Example: "  grom generate -n ./grom.json",
 	RunE:    generateFunc,
 }

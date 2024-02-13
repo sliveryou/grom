@@ -1,4 +1,4 @@
-.PHONY: build install pkg clean fmt lint proxy
+.PHONY: build install pkg clean tidy fmt lint test proxy pre-commit
 
 build:
 	@sh scripts/build.sh
@@ -12,6 +12,9 @@ pkg:
 clean:
 	@sh scripts/clean.sh
 
+tidy:
+	@go mod tidy -e -v
+
 fmt:
 	@find . -name '*.go' -not -path "./vendor/*" | xargs gofumpt -w -extra
 	@find . -name '*.go' -not -path "./vendor/*" | xargs -n 1 -t goimports-reviser -rm-unused -set-alias -company-prefixes "github.com/sliveryou" -project-name "github.com/sliveryou/grom"
@@ -20,6 +23,11 @@ fmt:
 lint:
 	@golangci-lint run ./...
 
+test:
+	@go test ./...
+
 proxy:
 	@go env -w GO111MODULE="on"
 	@go env -w GOPROXY="https://goproxy.cn,direct"
+
+pre-commit: tidy fmt lint test

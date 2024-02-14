@@ -23,11 +23,13 @@ jobs:
             goos: darwin
     steps:
       - uses: actions/checkout@v4
+      - name: Declare variables
+        shell: bash
+        run: |
+          echo "GO_VERSION='go1.19.13'" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(env TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "GIT_COMMIT=$(git rev-parse --short=10 $GITHUB_SHA)" >> $GITHUB_ENV
       - uses: wangyoucao577/go-release-action@v1
-        env:
-          GO_VERSION: "go1.19.13"
-          BUILD_TIME: $(date "+%Y-%m-%d %H:%M:%S")
-          GIT_COMMIT: $(git rev-parse --short=10 "$GITHUB_SHA")
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}

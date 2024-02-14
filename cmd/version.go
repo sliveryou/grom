@@ -9,7 +9,7 @@ import (
 
 var (
 	projectName    = "grom"
-	projectVersion = "1.0.6"
+	projectVersion = "1.0.7"
 	goVersion      = ""
 	gitCommit      = ""
 	buildTime      = ""

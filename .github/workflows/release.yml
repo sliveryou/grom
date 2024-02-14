@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  release:
+    types: [ published, edited ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  releases-matrix:
+    name: Release grom binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, linux/arm64,
+        # windows/386, windows/amd64, windows/arm64, darwin/amd64, darwin/arm64
+        goos: [ linux, windows, darwin ]
+        goarch: [ '386', amd64, arm64 ]
+        exclude:
+          - goarch: '386'
+            goos: darwin
+    steps:
+      - uses: actions/checkout@v4
+      - name: Declare variables
+        shell: bash
+        run: |
+          echo "GO_VERSION='go1.19.13'" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(env TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "GIT_COMMIT=$(git rev-parse --short=10 $GITHUB_SHA)" >> $GITHUB_ENV
+      - uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://dl.google.com/go/go1.19.13.linux-amd64.tar.gz"
+          project_path: "."
+          binary_name: "grom"
+          extra_files: LICENSE README.md README_zh-CN.md
+          ldflags: -X "github.com/sliveryou/grom/cmd.goVersion=${{ env.GO_VERSION }}" -X "github.com/sliveryou/grom/cmd.buildTime=${{ env.BUILD_TIME }}" -X "github.com/sliveryou/grom/cmd.gitCommit=${{ env.GIT_COMMIT }}"

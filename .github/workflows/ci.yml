@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'go.mod'
+      - '**.go'
+      - '**.yml'
+  pull_request:
+    paths:
+      - 'go.mod'
+      - '**.go'
+      - '**.yml'
+
+env:
+  # https://github.com/npm/node-semver#tilde-ranges-123-12-1
+  lint_go_version: '~1.21'
+  test_go_version: '~1.16'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '${{ env.lint_go_version }}'
+
+      - run: go mod tidy
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.56.1
+          args: "--out-format colored-line-number"
+          skip-pkg-cache: true
+
+  fmt:
+    name: Fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '${{ env.lint_go_version }}'
+
+      - name: Install tools
+        run: |
+          go install mvdan.cc/gofumpt@v0.6.0
+          go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
+          go install github.com/incu6us/goimports-reviser/v3@v3.6.4
+          go mod tidy
+
+      - name: Code fmt
+        run: |
+          make fmt
+          if ! git diff --exit-code ':!go.mod' ':!go.sum'; then
+            echo "please run 'make fmt'" >&2
+            exit 1
+          fi
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '${{ env.test_go_version }}'
+
+      - name: Mod tidy
+        run: |
+          go mod tidy
+          if ! git diff --exit-code; then
+            echo "please run 'go mod tidy'" >&2
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: go test -race ./...

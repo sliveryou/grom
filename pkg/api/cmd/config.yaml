@@ -47,7 +47,7 @@ route_style: "kebab"
 enable_plural: true
 
 # 代码生成相关配置
-# 将要生成的文件所在目录，必填
+# 将要生成的文件所在目录，如果为相对路径，则相对与命令执行路径生成，必填
 dir: "testdata/example"
 # 是否需要生成模型，启用后会在 dir/model 目录下生成数据库模型
 enable_model: true

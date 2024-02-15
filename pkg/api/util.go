@@ -96,7 +96,16 @@ func getTypeEmptyString(t string) string {
 
 // toPointer makes the type t to pointer type.
 func toPointer(t string) string {
+	if isReferenceType(t) {
+		return t
+	}
 	return "*" + strings.TrimPrefix(t, "*")
+}
+
+// isReferenceType reports whether t is reference type.
+func isReferenceType(t string) bool {
+	return strings.HasPrefix(t, "map") ||
+		strings.HasPrefix(t, "[]")
 }
 
 // isPointerWhenUpdated reports whether f is pointer type when updated.

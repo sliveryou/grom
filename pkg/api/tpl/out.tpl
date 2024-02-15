@@ -142,7 +142,7 @@ type Patch{{ .StructName }}Resp {
 
 // {{ .StructName }}Filter {{ .TableComment }}筛选参数
 type {{ .StructName }}Filter {
-    {{ .IdName }}s []{{ .IdType }} `json:"{{ .IdRawName }}s"` // {{ .IdComment }}列表
+    {{ .IdNamePlural }} []{{ .IdType }} `json:"{{ .IdRawNamePlural }},optional"` // {{ .IdComment }}列表
     {{ .StructFilterInfo }}
 }
 

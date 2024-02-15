@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"github.com/jinzhu/inflection"
 
 	"github.com/sliveryou/grom/util"
 )
@@ -138,14 +139,16 @@ func IsAutoTimeField(f StructField) bool {
 }
 
 type generateConfig struct {
-	IdName       string
-	IdType       string
-	IdComment    string
-	IdRawName    string
-	RouteName    string // snake or kebab
-	ModelName    string // camel
-	GroupName    string // lower
-	StructFields []StructField
+	IdName          string
+	IdNamePlural    string
+	IdType          string
+	IdComment       string
+	IdRawName       string
+	IdRawNamePlural string
+	RouteName       string // snake or kebab
+	ModelName       string // camel
+	GroupName       string // lower
+	StructFields    []StructField
 }
 
 func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
@@ -170,11 +173,13 @@ func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 		}
 		// remove unsigned
 		fi.Type = strings.TrimPrefix(fi.Type, unsignedPrefix)
-		// convert time.Time to int64
-		if fi.Type == util.GoTime {
+		// convert json to map
+		if fi.DataType == dataTypeJSON {
+			fi.Type = dataTypeMap
+		} else if fi.Type == util.GoTime {
+			// convert time.Time to int64
 			fi.Type = util.GoInt64
-		}
-		if fi.Type == util.GoBool && fi.Enums == boolTypeEnums {
+		} else if fi.Type == util.GoBool && fi.Enums == boolTypeEnums {
 			// trim bool comment
 			fi.Comment = convertComment(fi.Comment, true)
 		} else if fi.Type == util.GoInt {
@@ -189,8 +194,10 @@ func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 		// get id info
 		if fi.IsPrimaryKey {
 			gc.IdName = fi.Name
+			gc.IdNamePlural = inflection.Plural(gc.IdName)
 			gc.IdType = fi.Type
 			gc.IdRawName = fi.RawName
+			gc.IdRawNamePlural = inflection.Plural(gc.IdRawName)
 			if fi.Comment != "" {
 				gc.IdComment = fi.Comment
 			}

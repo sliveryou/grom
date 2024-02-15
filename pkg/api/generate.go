@@ -48,6 +48,7 @@ const (
 	deleteAt                = "delete_at"
 	gormDeleteAt            = "gorm.DeletedAt"
 	dataTypeJSON            = "json"
+	dataTypeMap             = "map[string]interface{}"
 	dataTypesJSON           = "datatypes.JSON"
 )
 
@@ -242,9 +243,11 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 		RoutePrefix           string
 		GroupPrefix           string
 		IdName                string
+		IdNamePlural          string
 		IdType                string
 		IdComment             string
 		IdRawName             string
+		IdRawNamePlural       string
 		IdLabel               string
 		StructInfo            string
 		StructGetInfo         string
@@ -262,9 +265,11 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 		RoutePrefix:           strings.Trim(c.RoutePrefix, `/`),
 		GroupPrefix:           strings.Trim(c.GroupPrefix, `/`),
 		IdName:                gc.IdName,
+		IdNamePlural:          gc.IdNamePlural,
 		IdType:                gc.IdType,
 		IdComment:             gc.IdComment,
 		IdRawName:             gc.IdRawName,
+		IdRawNamePlural:       gc.IdRawNamePlural,
 		IdLabel:               convertComment(gc.IdComment, true),
 		StructInfo:            buildStructInfo(gc.StructFields),
 		StructGetInfo:         buildStructGetInfo(gc.StructFields),
@@ -328,13 +333,10 @@ func buildStructGetInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
-		if f.IsPrimaryKey {
+		if f.IsPrimaryKey || isReferenceType(f.Type) {
 			continue
 		}
 		tag := fmt.Sprintf("form:\"%s,optional\"", f.RawName)
-		if f.IsNullable {
-			f.Type = toPointer(f.Type)
-		}
 		if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
 			f.Type = toPointer(f.Type)
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\" label:%q",
@@ -397,11 +399,11 @@ func buildStructCreateInfo(fs []StructField) string {
 }
 
 // buildStructUpdateInfo builds struct update info.
-func buildStructUpdateInfo(fs []StructField, ignorePrimaryKey ...bool) string {
+func buildStructUpdateInfo(fs []StructField, isBatchUpdate ...bool) string {
 	b := &strings.Builder{}
-	ipk := false
-	if len(ignorePrimaryKey) > 0 {
-		ipk = ignorePrimaryKey[0]
+	isBatch := false
+	if len(isBatchUpdate) > 0 {
+		isBatch = isBatchUpdate[0]
 	}
 
 	for _, f := range fs {
@@ -410,14 +412,14 @@ func buildStructUpdateInfo(fs []StructField, ignorePrimaryKey ...bool) string {
 		}
 		prefix := "json"
 		if f.IsPrimaryKey {
-			if ipk {
+			if isBatch {
 				continue
 			}
 			prefix = "path"
 		}
 		needLabel := false
 		tag := fmt.Sprintf("%s:\"%s,optional\"", prefix, f.RawName)
-		if !f.IsNullable && f.Default == "" {
+		if !f.IsNullable && f.Default == "" && !isBatch {
 			validate := " validate:\"required\""
 			tag = fmt.Sprintf("%s:%q", prefix, f.RawName)
 			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
@@ -482,14 +484,17 @@ func GenerateConvertAPI(c Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 
+	convertInfo, ifInfo := buildConvertAPIInfo(c.StructName, gc.StructFields)
 	err := generator.ExecuteTemplate(buffer, convertAPITplName, struct {
 		TableComment string
 		StructName   string
 		ConvertInfo  string
+		IfInfo       string
 	}{
 		TableComment: c.TableComment,
 		StructName:   c.StructName,
-		ConvertInfo:  buildConvertAPIInfo(gc.StructFields),
+		ConvertInfo:  convertInfo,
+		IfInfo:       ifInfo,
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -504,15 +509,20 @@ func GenerateConvertAPI(c Config, fs []*util.StructField) (string, error) {
 }
 
 // buildConvertAPIInfo builds convert api info.
-func buildConvertAPIInfo(fs []StructField) string {
-	b := &strings.Builder{}
+func buildConvertAPIInfo(structName string, fs []StructField) (convertInfo, ifInfo string) {
+	var b, ib strings.Builder
 
 	for _, f := range fs {
-		field := fmt.Sprintf("%s: src.%s,\n", f.Name, f.Name)
-		b.WriteString(field)
+		if f.Type == dataTypeMap {
+			b.WriteString(f.Name + ": make(map[string]interface{}),\n")
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\nif err := json.Unmarshal(src.%s, &dst.%s); err != nil {\nreturn %s{}, errors.WithMessage(err, \"json.Unmarshal %s err\")\n}\n}\n",
+				f.Name, f.Name, f.Name, structName, f.Name))
+		} else {
+			b.WriteString(fmt.Sprintf("%s: src.%s,\n", f.Name, f.Name))
+		}
 	}
 
-	return strings.TrimSuffix(b.String(), "\n")
+	return strings.TrimSuffix(b.String(), "\n"), strings.TrimSuffix(ib.String(), "\n")
 }
 
 // GenerateConvertRPC generates the output rpc convert functions by api config and structure fields.
@@ -553,11 +563,11 @@ func buildConvertRPCInfo(fs []StructField) (convertInfo, ifInfo string) {
 	for _, f := range fs {
 		srcName := initialismsReplacer.Replace(f.Name)
 		if IsAutoTimeField(f) || IsTimeField(f) {
-			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, "0"))
-			ib.WriteString(fmt.Sprintf("if src.%s != nil {\n\tdst.%s = src.%s.UnixMilli()\n}\n", srcName, f.Name, srcName))
+			b.WriteString(f.Name + "%s: 0,\n")
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\ndst.%s = src.%s.UnixMilli()\n}\n", srcName, f.Name, srcName))
 		} else if !f.IsNullable && f.Default != "" {
 			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, getTypeEmptyString(f.Type)))
-			ib.WriteString(fmt.Sprintf("if src.%s != nil {\n\tdst.%s = *src.%s\n}\n", srcName, f.Name, srcName))
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\ndst.%s = *src.%s\n}\n", srcName, f.Name, srcName))
 		} else {
 			b.WriteString(fmt.Sprintf("%s: src.%s,\n", f.Name, srcName))
 		}

@@ -59,6 +59,7 @@ func contains(s []string, v string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

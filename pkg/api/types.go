@@ -12,8 +12,8 @@ import (
 type Config struct {
 	util.DBConfig
 
-	StructName       string   `json:"struct_name"`       // camel
-	SnakeStructName  string   `json:"snake_struct_name"` // snake
+	StructName       string   `json:"struct_name,omitempty"` // camel
+	RouteName        string   `json:"route_name,omitempty"`  // snake
 	TableComment     string   `json:"-"`
 	EnableInitialism bool     `json:"enable_initialism"`
 	IgnoreFields     []string `json:"ignore_fields"`
@@ -24,18 +24,25 @@ type Config struct {
 	Email   string `json:"email"`
 	Version string `json:"version"`
 
-	ServiceName  string `json:"service_name"`  // camel
-	ServerPrefix string `json:"server_prefix"` // lower
-	GroupPrefix  string `json:"group_prefix"`  // lower
+	ServiceName  string `json:"service_name"` // camel
+	RoutePrefix  string `json:"route_prefix"` // lower
+	GroupPrefix  string `json:"group_prefix"` // lower
+	RouteStyle   string `json:"route_style"`  // one of [snake, kebab], default is kebab
+	EnablePlural bool   `json:"enable_plural"`
+	EnableModel  bool   `json:"enable_model"`
 }
 
 // GetCmdConfig gets the *util.CmdConfig.
 func (c *Config) GetCmdConfig() *util.CmdConfig {
 	return &util.CmdConfig{
-		DBConfig:         c.DBConfig,
-		StructName:       c.StructName,
-		EnableInitialism: c.EnableInitialism,
-		DisableUnsigned:  true,
+		DBConfig:           c.DBConfig,
+		PackageName:        "model",
+		StructName:         c.StructName,
+		EnableInitialism:   c.EnableInitialism,
+		EnableFieldComment: true,
+		EnableJSONTag:      true,
+		EnableGormV2Tag:    true,
+		DisableUnsigned:    true,
 	}
 }
 
@@ -45,13 +52,46 @@ func (c *Config) UpdateBy(cc *util.CmdConfig) {
 	c.TableComment = cc.TableComment
 }
 
+// GetDelimiter gets the route delimiter.
+func (c *Config) GetDelimiter() uint8 {
+	var delimiter uint8 = '-'
+	if c.RouteStyle == RouteStyleSnake {
+		delimiter = '_'
+	}
+
+	return delimiter
+}
+
 // ProjectConfig represents the config of the generated project.
 type ProjectConfig struct {
 	Config
-	Dir                 string   `json:"dir"`
-	TablePrefix         string   `json:"table_prefix"`
-	Tables              []string `json:"tables"`
-	NeedTrimTablePrefix bool     `json:"need_trim_table_prefix"`
+	Dir                   string   `json:"dir"`
+	TablePrefix           string   `json:"table_prefix"`
+	Tables                []string `json:"tables"`
+	EnableTrimTablePrefix bool     `json:"enable_trim_table_prefix"`
+}
+
+// Check checks whether pc is valid.
+func (pc *ProjectConfig) Check() error {
+	if pc.Host == "" || pc.Port < 1 ||
+		pc.User == "" || pc.Database == "" {
+		return errDBConfig
+	}
+	if pc.ServiceName == "" {
+		return errEmptyServiceName
+	}
+	if pc.Dir == "" {
+		return errEmptyDir
+	}
+	if len(pc.Tables) == 0 {
+		return errNoTables
+	}
+	if pc.RouteStyle != RouteStyleSnake &&
+		pc.RouteStyle != RouteStyleKebab {
+		pc.RouteStyle = RouteStyleKebab
+	}
+
+	return nil
 }
 
 // StructField represents the field of the generated model structure.
@@ -61,6 +101,7 @@ type StructField struct {
 	Comment      string
 	RawName      string
 	RawType      string
+	DataType     string
 	Default      string
 	Enums        string
 	IsPrimaryKey bool
@@ -75,6 +116,7 @@ func ToStructField(sf *util.StructField) StructField {
 		Comment:      sf.Comment,
 		RawName:      sf.RawName,
 		RawType:      sf.Type,
+		DataType:     sf.DataType,
 		Default:      sf.Default,
 		Enums:        getEnums(sf.Comment),
 		IsPrimaryKey: sf.IsPrimaryKey,
@@ -96,27 +138,27 @@ func IsAutoTimeField(f StructField) bool {
 }
 
 type generateConfig struct {
-	IdName          string
-	IdType          string
-	IdComment       string
-	IdRawName       string
-	SnakeStructName string // snake
-	ModelName       string // camel
-	GroupName       string // lower
-	StructFields    []StructField
+	IdName       string
+	IdType       string
+	IdComment    string
+	IdRawName    string
+	RouteName    string // snake or kebab
+	ModelName    string // camel
+	GroupName    string // lower
+	StructFields []StructField
 }
 
-func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
+func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 	gc := generateConfig{
-		IdComment:       c.TableComment + defaultIdComment,
-		SnakeStructName: strcase.ToSnake(c.StructName),
-		ModelName:       c.StructName,
-		GroupName:       strings.ToLower(c.StructName),
+		IdComment: c.TableComment + defaultIdComment,
+		RouteName: strcase.ToDelimited(c.StructName, c.GetDelimiter()),
+		ModelName: c.StructName,
+		GroupName: strings.ToLower(c.StructName),
 	}
-	if c.SnakeStructName != "" {
-		gc.SnakeStructName = c.SnakeStructName
-		gc.ModelName = strcase.ToCamel(c.SnakeStructName)
-		gc.GroupName = strings.ToLower(strcase.ToCamel(c.SnakeStructName))
+	if c.RouteName != "" {
+		gc.RouteName = c.RouteName
+		gc.ModelName = strcase.ToCamel(c.RouteName)
+		gc.GroupName = strings.ToLower(strcase.ToCamel(c.RouteName))
 	}
 
 	fields := make([]StructField, 0, len(fs))
@@ -158,4 +200,46 @@ func getGenerateConfig(c *Config, fs []*util.StructField) generateConfig {
 	gc.StructFields = fields
 
 	return gc
+}
+
+func cloneStructFields(cc *util.CmdConfig, fs []*util.StructField) []*util.StructField {
+	cloneFs := make([]*util.StructField, 0, len(fs))
+
+	for _, f := range fs {
+		cloneF := *f
+		enums := getEnums(f.Comment)
+		cloneF.Name = initialismsReplacer.Replace(cloneF.Name)
+		cloneF.Type = strings.TrimPrefix(cloneF.Type, unsignedPrefix)
+
+		if cloneF.Type == util.GoTime {
+			if cloneF.RawName == deleteAt {
+				cloneF.Type = gormDeleteAt
+				cc.EnableGROM = true
+			} else {
+				cloneF.Type = util.GoPointerTime
+			}
+		} else if cloneF.Type == util.GoBool && enums == boolTypeEnums {
+			// trim bool comment
+			cloneF.Comment = convertComment(cloneF.Comment, true)
+		} else if cloneF.Type == util.GoInt {
+			if enums != "" {
+				// convert enums int to int32
+				cloneF.Type = util.GoInt32
+			} else {
+				// convert int to int64 adapted to protobuf
+				cloneF.Type = util.GoInt64
+			}
+		}
+		if cloneF.DataType == dataTypeJSON {
+			cloneF.Type = dataTypesJSON
+			cc.EnableDataTypes = true
+		}
+		if cloneF.Default != "" {
+			cloneF.Type = toPointer(cloneF.Type)
+		}
+
+		cloneFs = append(cloneFs, &cloneF)
+	}
+
+	return cloneFs
 }

@@ -20,8 +20,8 @@ const (
 )
 
 // APIFormat formats the api data.
-func APIFormat(data string) (string, error) {
-	_, err := parser.ParseContentWithParserSkipCheckTypeDeclaration(data)
+func APIFormat(data string, filename ...string) (string, error) {
+	_, err := parser.ParseContentWithParserSkipCheckTypeDeclaration(data, filename...)
 	if err != nil {
 		return "", errors.WithMessage(err, "parser.ParseContent err")
 	}
@@ -59,6 +59,11 @@ func APIFormat(data string) (string, error) {
 		noCommentLine := util.RemoveComment(line)
 		if noCommentLine == rightParenthesis || noCommentLine == rightBrace {
 			tapCount--
+			if preLine == "" {
+				temp := strings.TrimSuffix(builder.String(), pathx.NL)
+				builder.Reset()
+				builder.WriteString(temp)
+			}
 		}
 		if tapCount < 0 {
 			line := strings.TrimSuffix(noCommentLine, rightBrace)
@@ -83,6 +88,7 @@ func APIFormat(data string) (string, error) {
 func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Builder) (bool, error) {
 	noCommentLine := util.RemoveComment(line)
 	tokenCount := 0
+	var preLine string
 	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, leftParenthesis) ||
 		strings.HasSuffix(noCommentLine, leftBrace)) {
 		var typeBuilder strings.Builder
@@ -92,7 +98,13 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + pathx.NL)
 			if noCommentLine == rightBrace || noCommentLine == rightParenthesis {
 				tokenCount--
+				if preLine == "" {
+					temp := strings.TrimRight(typeBuilder.String(), pathx.NL+noCommentLine)
+					typeBuilder.Reset()
+					typeBuilder.WriteString(temp + pathx.NL + noCommentLine + pathx.NL)
+				}
 			}
+			preLine = strings.TrimSpace(scanner.Text())
 			if tokenCount == 0 {
 				ts, err := format.Source([]byte(typeBuilder.String()))
 				if err != nil {

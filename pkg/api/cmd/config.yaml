@@ -1,0 +1,55 @@
+# 数据库相关配置
+# 将要连接的 mysql 主机，必填
+host: "localhost"
+# 将要连接的 mysql 端口，必填
+port: 3306
+# 将要连接的 mysql 用户，必填
+user: "user"
+# 将要连接的 mysql 密码
+password: "password"
+# 将要连接的 mysql 数据库，必填
+database: "database"
+# 将要连接的 mysql 数据表，必填
+tables:
+  - "example_table1"
+  - "example_table2"
+# 将要连接的 mysql 数据表前缀，无论是否需要去除表前缀，如果有统一的表前缀，都建议指定
+table_prefix: "example_"
+# 是否需要去除表前缀，启用后生成的结构体将不包含表前缀
+enable_trim_table_prefix: true
+# 数据表需要忽略的字段
+ignore_fields:
+  - "create_at"
+  - "update_at"
+  - "delete_at"
+
+# api 相关配置（选填）
+# api 标题
+title: "api title"
+# api 描述
+desc: "api desc"
+# api 作者
+author: "author"
+# api 作者联系方式
+email: "author@example.com"
+# api 版本
+version: "v1.0.0"
+
+# 服务名称，建议首字母大写，必填
+service_name: "Example"
+# api 组前缀，建议小写
+group_prefix: ""
+# 路由前缀，建议小写
+route_prefix: "example"
+# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+route_style: "kebab"
+# 是否需要路由单词复数
+enable_plural: true
+
+# 代码生成相关配置
+# 将要生成的文件所在目录，必填
+dir: "testdata/example"
+# 是否需要生成模型，启用后会在 dir/model 目录下生成数据库模型
+enable_model: true
+# 是否启用常用缩写词映射，如 Api -> API，Id -> ID 等
+enable_initialism: false

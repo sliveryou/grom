@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	_ "embed"
+	stderrors "errors"
 	"fmt"
 	"go/format"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/iancoleman/strcase"
+	"github.com/jinzhu/inflection"
 	"github.com/pkg/errors"
 
 	"github.com/sliveryou/goctl/api/protogen"
@@ -32,15 +34,28 @@ const (
 	convertRPCOut = "convert-rpc.txt"
 	updateMapOut  = "update-map.txt"
 	serverAPIOut  = "server"
+	modelDir      = "model"
 
 	writeFilePerm           = 0o666
 	unsignedPrefix          = "u"
 	commentPrefix           = "// "
 	autoTimeSuffix          = "_at"
 	apiFileSuffix           = ".api"
+	goFileSuffix            = ".go"
 	boolTypeEnums           = "0 1"
 	defaultCurrentTimestamp = "CURRENT_TIMESTAMP"
 	defaultIdComment        = "ID"
+	deleteAt                = "delete_at"
+	gormDeleteAt            = "gorm.DeletedAt"
+	dataTypeJSON            = "json"
+	dataTypesJSON           = "datatypes.JSON"
+)
+
+const (
+	// RouteStyleSnake snake route style.
+	RouteStyleSnake = "snake"
+	// RouteStyleKebab kebab route style.
+	RouteStyleKebab = "kebab"
 )
 
 var (
@@ -56,6 +71,11 @@ var (
 	convertRPCTpl string
 	//go:embed tpl/update-map.tpl
 	updateMapTpl string
+
+	errDBConfig         = stderrors.New("invalid db config")
+	errEmptyServiceName = stderrors.New("service name can not be empty")
+	errEmptyDir         = stderrors.New("dir can not be empty")
+	errNoTables         = stderrors.New("there are no tables")
 )
 
 func init() {
@@ -83,58 +103,83 @@ func init() {
 }
 
 // GenerateProject generates the output project by project config.
-func GenerateProject(pc *ProjectConfig) error {
+func GenerateProject(pc ProjectConfig) error {
+	if err := pc.Check(); err != nil {
+		return errors.WithMessage(err, "Check err")
+	}
+
 	var cab, crb, umb strings.Builder
-	if err := mkdirIfNotExist(pc.Dir); err != nil {
+	if err := mkdirIfNotExist(path.Join(pc.Dir, modelDir)); err != nil {
 		return errors.WithMessage(err, "mkdirIfNotExist err")
 	}
 	defer util.CloseDB()
 
 	apiImports := make([]string, 0, len(pc.Tables))
 	for _, table := range pc.Tables {
-		var apiName string
+		if table == "" {
+			continue
+		}
+
+		var apiName, modelName string
 		c := pc.Config
 		c.Table = table
-		if pc.NeedTrimTablePrefix {
+		if pc.EnableTrimTablePrefix {
 			c.StructName = strcase.ToCamel(strings.TrimPrefix(table, pc.TablePrefix))
-			apiName = strings.ToLower(c.StructName) + apiFileSuffix
+			baseName := strings.ToLower(c.StructName)
+			apiName = baseName + apiFileSuffix
+			modelName = baseName + goFileSuffix
 		} else {
 			c.StructName = strcase.ToCamel(table)
-			c.SnakeStructName = strcase.ToSnake(strings.TrimPrefix(table, pc.TablePrefix))
-			apiName = strings.ToLower(strcase.ToCamel(c.SnakeStructName)) + apiFileSuffix
+			c.RouteName = strcase.ToDelimited(strings.TrimPrefix(table, pc.TablePrefix), c.GetDelimiter())
+			baseName := strings.ToLower(strcase.ToCamel(c.RouteName))
+			apiName = baseName + apiFileSuffix
+			modelName = baseName + goFileSuffix
 		}
-		apiImports = append(apiImports, apiName)
 
 		cc := c.GetCmdConfig()
 		fields, err := util.GetFields(cc)
 		if err != nil {
 			return errors.WithMessage(err, "util.GetFields err")
 		}
+		if len(fields) == 0 {
+			color.Red.Printf("table: %s has no fields, continue to next one\n", table)
+			continue
+		}
+
+		if c.EnableModel {
+			cloneFields := cloneStructFields(cc, fields)
+			model, err := util.GenerateCode(cc, cloneFields)
+			if err != nil {
+				return errors.WithMessage(err, "util.GenerateCode err")
+			}
+			if err := os.WriteFile(path.Join(pc.Dir, modelDir, modelName), []byte(model), writeFilePerm); err != nil {
+				return errors.WithMessage(err, "os.WriteFile err")
+			}
+		}
 
 		c.UpdateBy(cc)
-		api, err := GenerateAPI(&c, fields)
+		api, err := GenerateAPI(c, fields)
 		if err != nil {
 			return errors.WithMessage(err, "GenerateAPI err")
 		}
-
-		err = os.WriteFile(path.Join(pc.Dir, apiName), []byte(api), writeFilePerm)
-		if err != nil {
+		if err := os.WriteFile(path.Join(pc.Dir, apiName), []byte(api), writeFilePerm); err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
+		apiImports = append(apiImports, apiName)
 
-		ca, err := GenerateConvertAPI(&c, fields)
+		ca, err := GenerateConvertAPI(c, fields)
 		if err != nil {
 			return errors.WithMessage(err, "GenerateConvertAPI err")
 		}
 		cab.WriteString(ca + "\n\n")
 
-		cr, err := GenerateConvertRPC(&c, fields)
+		cr, err := GenerateConvertRPC(c, fields)
 		if err != nil {
 			return errors.WithMessage(err, "GenerateConvertRPC err")
 		}
 		crb.WriteString(cr + "\n\n")
 
-		um, err := GenerateUpdateMap(&c, fields)
+		um, err := GenerateUpdateMap(c, fields)
 		if err != nil {
 			return errors.WithMessage(err, "GenerateUpdateMap err")
 		}
@@ -143,15 +188,16 @@ func GenerateProject(pc *ProjectConfig) error {
 
 	if len(apiImports) > 0 {
 		c := pc.Config
-		out, err := GenerateServerAPI(&c, apiImports)
-		if err != nil {
-			return errors.WithMessage(err, "GenerateServerAPI err")
-		}
 		fileName := strings.ToLower(strings.Trim(pc.TablePrefix, `_`))
 		if fileName == "" {
 			fileName = serverAPIOut
 		}
 		fileName = path.Join(pc.Dir, fileName+apiFileSuffix)
+
+		out, err := GenerateServerAPI(c, apiImports, fileName)
+		if err != nil {
+			return errors.WithMessage(err, "GenerateServerAPI err")
+		}
 		if err := os.WriteFile(fileName, []byte(out), writeFilePerm); err != nil {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
@@ -179,21 +225,21 @@ func GenerateProject(pc *ProjectConfig) error {
 }
 
 // GenerateAPI generates the output api by api config and structure fields.
-func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
+func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
+	routeName := gc.RouteName
+	if c.EnablePlural {
+		routeName = inflection.Plural(routeName)
+	}
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		TableComment          string
 		StructName            string // camel
-		SnakeStructName       string // snake
+		RouteName             string // snake or kebab
 		GroupName             string // lower
-		Title                 string
-		Desc                  string
-		Author                string
-		Email                 string
-		Version               string
+		APIInfo               string
 		ServiceName           string
-		ServerPrefix          string
+		RoutePrefix           string
 		GroupPrefix           string
 		IdName                string
 		IdType                string
@@ -209,15 +255,11 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 	}{
 		TableComment:          c.TableComment,
 		StructName:            c.StructName,
-		SnakeStructName:       gc.SnakeStructName,
+		RouteName:             routeName,
 		GroupName:             gc.GroupName,
-		Title:                 c.Title,
-		Desc:                  c.Desc,
-		Author:                c.Author,
-		Email:                 c.Email,
-		Version:               c.Version,
+		APIInfo:               buildAPIInfo(c),
 		ServiceName:           c.ServiceName,
-		ServerPrefix:          strings.Trim(c.ServerPrefix, `/`),
+		RoutePrefix:           strings.Trim(c.RoutePrefix, `/`),
 		GroupPrefix:           strings.Trim(c.GroupPrefix, `/`),
 		IdName:                gc.IdName,
 		IdType:                gc.IdType,
@@ -241,6 +283,29 @@ func GenerateAPI(c *Config, fs []*util.StructField) (string, error) {
 	}
 
 	return api, nil
+}
+
+// buildAPIInfo builds api info.
+func buildAPIInfo(c Config) string {
+	b := &strings.Builder{}
+
+	if c.Title != "" {
+		b.WriteString(fmt.Sprintf("title: %q\n", c.Title))
+	}
+	if c.Desc != "" {
+		b.WriteString(fmt.Sprintf("desc: %q\n", c.Desc))
+	}
+	if c.Author != "" {
+		b.WriteString(fmt.Sprintf("author: %q\n", c.Author))
+	}
+	if c.Email != "" {
+		b.WriteString(fmt.Sprintf("email: %q\n", c.Email))
+	}
+	if c.Version != "" {
+		b.WriteString(fmt.Sprintf("version: %q\n", c.Version))
+	}
+
+	return b.String()
 }
 
 // buildStructInfo builds struct info.
@@ -391,32 +456,29 @@ func buildStructUpdateInfo(fs []StructField, ignorePrimaryKey ...bool) string {
 }
 
 // GenerateServerAPI generates the output server api by api config and import apis.
-func GenerateServerAPI(c *Config, imports []string) (string, error) {
+func GenerateServerAPI(c Config, imports []string, filename ...string) (string, error) {
 	buffer := &bytes.Buffer{}
 	err := generator.ExecuteTemplate(buffer, serverAPITplName, struct {
-		Title   string
-		Desc    string
-		Author  string
-		Email   string
-		Version string
 		Imports []string
+		APIInfo string
 	}{
-		Title:   c.Title,
-		Desc:    c.Desc,
-		Author:  c.Author,
-		Email:   c.Email,
-		Version: c.Version,
 		Imports: imports,
+		APIInfo: buildAPIInfo(c),
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
 	}
 
-	return buffer.String(), nil
+	api, err := af.APIFormat(buffer.String(), filename...)
+	if err != nil {
+		return "", errors.WithMessage(err, "format.APIFormat err")
+	}
+
+	return api, nil
 }
 
 // GenerateConvertAPI generates the output api convert functions by api config and structure fields.
-func GenerateConvertAPI(c *Config, fs []*util.StructField) (string, error) {
+func GenerateConvertAPI(c Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 
@@ -454,7 +516,7 @@ func buildConvertAPIInfo(fs []StructField) string {
 }
 
 // GenerateConvertRPC generates the output rpc convert functions by api config and structure fields.
-func GenerateConvertRPC(c *Config, fs []*util.StructField) (string, error) {
+func GenerateConvertRPC(c Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 
@@ -505,7 +567,7 @@ func buildConvertRPCInfo(fs []StructField) (convertInfo, ifInfo string) {
 }
 
 // GenerateUpdateMap generates the output updateMap by api config and structure fields.
-func GenerateUpdateMap(c *Config, fs []*util.StructField) (string, error) {
+func GenerateUpdateMap(c Config, fs []*util.StructField) (string, error) {
 	gc := getGenerateConfig(c, fs)
 	buffer := &bytes.Buffer{}
 	symbol := strings.Repeat("-", 20)
@@ -527,16 +589,18 @@ func GenerateUpdateMap(c *Config, fs []*util.StructField) (string, error) {
 			IsNullable           bool
 			IsTimeField          bool
 			IsPointer            bool
+			IsDataTypeJSON       bool
 		}{
 			MemberName:           field.Name,
 			MemberRawName:        field.RawName,
 			MemberLowerCamelName: strcase.ToLowerCamel(field.Name),
-			ObjectName:           strcase.ToLowerCamel(gc.SnakeStructName),
+			ObjectName:           strcase.ToLowerCamel(gc.RouteName),
 			ObjectMemberName:     initialismsReplacer.Replace(field.Name),
 			HasDefault:           field.Default != "",
 			IsNullable:           field.IsNullable,
 			IsTimeField:          IsTimeField(field),
 			IsPointer:            isPointerWhenUpdated(field),
+			IsDataTypeJSON:       field.DataType == dataTypeJSON,
 		})
 		if err != nil {
 			return "", errors.WithMessage(err, "generator.ExecuteTemplate err")

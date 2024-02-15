@@ -5,6 +5,8 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+
+	apicmd "github.com/sliveryou/grom/pkg/api/cmd"
 )
 
 const (
@@ -19,6 +21,10 @@ var rootCmd = &cobra.Command{
 	Short: "Get golang model structure by mysql information schema",
 	Example: "  grom generate -n ./grom.json\n" +
 		"  grom convert -n ./grom.json",
+}
+
+func init() {
+	rootCmd.AddCommand(apicmd.APICmd)
 }
 
 // Execute executes the root command and its subcommands.

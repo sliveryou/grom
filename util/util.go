@@ -17,7 +17,7 @@ func ConvertTable(cc CmdConfig) (string, error) {
 		return "", err
 	}
 
-	return generateCode(&cc, fields)
+	return GenerateCode(&cc, fields)
 }
 
 // GetFields gets golang structure fields converted by mysql table fields.
@@ -73,6 +73,7 @@ func GetFields(cc *CmdConfig) ([]*StructField, error) {
 			Type:         convertDataType(ci, cc),
 			Comment:      ci.Comment,
 			RawName:      ci.Name,
+			DataType:     ci.DataType,
 			Default:      ci.Default,
 			IsPrimaryKey: ci.IsPrimaryKey,
 			IsNullable:   ci.IsNullable,

@@ -5,10 +5,6 @@ import (
 {{ end -}}
 )
 
-info (
-    title:   "{{ .Title }}"
-    desc:    "{{ .Desc }}"
-    author:  "{{ .Author }}"
-    email:   "{{ .Email }}"
-    version: "{{ .Version }}"
-)
+{{ if .APIInfo }}info (
+	{{ .APIInfo }}
+){{ end }}

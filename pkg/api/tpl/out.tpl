@@ -1,15 +1,11 @@
 syntax = "v1"
 
-info (
-    title:   "{{ .Title }}"
-    desc:    "{{ .Desc }}"
-    author:  "{{ .Author }}"
-    email:   "{{ .Email }}"
-    version: "{{ .Version }}"
-)
+{{ if .APIInfo }}info (
+	{{ .APIInfo }}
+){{ end }}
 
 @server (
-    {{ if .ServerPrefix }}prefix: /{{ .ServerPrefix }}{{ end }}
+    {{ if .RoutePrefix }}prefix: /{{ .RoutePrefix }}{{ end }}
     group: {{ if .GroupPrefix }}{{ .GroupPrefix }}/{{ end }}{{ .GroupName }}
 )
 service {{ .ServiceName }} {
@@ -17,61 +13,61 @@ service {{ .ServiceName }} {
         summary: "查询{{ .TableComment }}"
     )
     @handler Get{{ .StructName }}
-    get /{{ .SnakeStructName }}/:{{ .IdRawName }} (Get{{ .StructName }}Req) returns (Get{{ .StructName }}Resp)
+    get /{{ .RouteName }}/:{{ .IdRawName }} (Get{{ .StructName }}Req) returns (Get{{ .StructName }}Resp)
 
     @doc (
         summary: "获取{{ .TableComment }}分页"
     )
     @handler Paginate{{ .StructName }}
-    get /{{ .SnakeStructName }} (Paginate{{ .StructName }}Req) returns (Paginate{{ .StructName }}Resp)
+    get /{{ .RouteName }} (Paginate{{ .StructName }}Req) returns (Paginate{{ .StructName }}Resp)
 
     @doc (
         summary: "创建{{ .TableComment }}"
     )
     @handler Create{{ .StructName }}
-    post /{{ .SnakeStructName }} (Create{{ .StructName }}Req) returns (Create{{ .StructName }}Resp)
+    post /{{ .RouteName }} (Create{{ .StructName }}Req) returns (Create{{ .StructName }}Resp)
 
     @doc (
         summary: "更新{{ .TableComment }}"
     )
     @handler Update{{ .StructName }}
-    put /{{ .SnakeStructName }}/:{{ .IdRawName }} (Update{{ .StructName }}Req) returns (Update{{ .StructName }}Resp)
+    put /{{ .RouteName }}/:{{ .IdRawName }} (Update{{ .StructName }}Req) returns (Update{{ .StructName }}Resp)
 
     @doc (
         summary: "删除{{ .TableComment }}"
     )
     @handler Delete{{ .StructName }}
-    delete /{{ .SnakeStructName }}/:{{ .IdRawName }} (Delete{{ .StructName }}Req) returns (Delete{{ .StructName }}Resp)
+    delete /{{ .RouteName }}/:{{ .IdRawName }} (Delete{{ .StructName }}Req) returns (Delete{{ .StructName }}Resp)
 
     @doc (
         summary: "部分更新{{ .TableComment }}"
     )
     @handler Patch{{ .StructName }}
-    patch /{{ .SnakeStructName }}/:{{ .IdRawName }} (Patch{{ .StructName }}Req) returns (Patch{{ .StructName }}Resp)
+    patch /{{ .RouteName }}/:{{ .IdRawName }} (Patch{{ .StructName }}Req) returns (Patch{{ .StructName }}Resp)
 
     @doc (
         summary: "获取{{ .TableComment }}列表"
     )
     @handler List{{ .StructName }}
-    post /{{ .SnakeStructName }}/list (List{{ .StructName }}Req) returns (List{{ .StructName }}Resp)
+    post /{{ .RouteName }}/list (List{{ .StructName }}Req) returns (List{{ .StructName }}Resp)
 
     @doc (
         summary: "批量创建{{ .TableComment }}"
     )
     @handler Create{{ .StructName }}s
-    post /{{ .SnakeStructName }}/batch/create (Create{{ .StructName }}sReq) returns (Create{{ .StructName }}sResp)
+    post /{{ .RouteName }}/batch/create (Create{{ .StructName }}sReq) returns (Create{{ .StructName }}sResp)
 
     @doc (
         summary: "批量更新{{ .TableComment }}"
     )
     @handler Update{{ .StructName }}s
-    post /{{ .SnakeStructName }}/batch/update (Update{{ .StructName }}sReq) returns (Update{{ .StructName }}sResp)
+    post /{{ .RouteName }}/batch/update (Update{{ .StructName }}sReq) returns (Update{{ .StructName }}sResp)
 
     @doc (
         summary: "批量删除{{ .TableComment }}"
     )
     @handler Delete{{ .StructName }}s
-    post /{{ .SnakeStructName }}/batch/delete (Delete{{ .StructName }}sReq) returns (Delete{{ .StructName }}sResp)
+    post /{{ .RouteName }}/batch/delete (Delete{{ .StructName }}sReq) returns (Delete{{ .StructName }}sResp)
 }
 
 // -------------------- {{ .TableComment }} {{ .StructName }} -------------------- //

@@ -110,6 +110,8 @@ type CmdConfig struct {
 	EnableGormV2Tag    bool     `json:"enable_gorm_v2_tag"`
 	DisableUnsigned    bool     `json:"disable_unsigned"`
 	EnableGoTime       bool     `json:"-"`
+	EnableGROM         bool     `json:"-"`
+	EnableDataTypes    bool     `json:"-"`
 	TableComment       string   `json:"-"`
 	TableIndexes       []string `json:"-"`
 	TableUniques       []string `json:"-"`
@@ -132,6 +134,7 @@ type StructField struct {
 	Tag          string
 	Comment      string
 	RawName      string
+	DataType     string
 	Default      string
 	IsPrimaryKey bool
 	IsNullable   bool

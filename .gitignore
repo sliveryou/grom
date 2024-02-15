@@ -176,3 +176,4 @@ $RECYCLE.BIN/
 ### Project ###
 testdata/
 /grom*
+/config.yaml

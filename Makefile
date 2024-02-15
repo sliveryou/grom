@@ -16,9 +16,9 @@ tidy:
 	@go mod tidy -e -v
 
 fmt:
-	@find . -name '*.go' -not -path "./vendor/*" | xargs gofumpt -w -extra
-	@find . -name '*.go' -not -path "./vendor/*" | xargs -n 1 -t goimports-reviser -rm-unused -set-alias -company-prefixes "github.com/sliveryou" -project-name "github.com/sliveryou/grom"
-	@find . -name '*.sh' -not -path "./vendor/*" | xargs shfmt -w -s -i 2 -ci -bn -sr
+	@find . -name '*.go' -not -path "*/testdata/*" | xargs gofumpt -w -extra
+	@find . -name '*.go' -not -path "*/testdata/*" | xargs -n 1 -t goimports-reviser -rm-unused -set-alias -company-prefixes "github.com/sliveryou" -project-name "github.com/sliveryou/grom"
+	@find . -name '*.sh' -not -path "*/testdata/*" | xargs shfmt -w -s -i 2 -ci -bn -sr
 
 lint:
 	@golangci-lint run ./...

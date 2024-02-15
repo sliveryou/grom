@@ -1,6 +1,6 @@
 {{ if .HasDefault -}}
-if in.{{ .MemberName }} != nil && ({{ .ObjectName }}.{{ .ObjectMemberName }} == nil || *in.{{ .MemberName }} != *{{ .ObjectName }}.{{ .ObjectMemberName }}) {
-    updateMap["{{ .MemberRawName }}"] = *in.{{ .MemberName }}
+if in.{{ .MemberName }} != nil {{ if not .IsDataTypeJSON }}&& ({{ .ObjectName }}.{{ .ObjectMemberName }} == nil || *in.{{ .MemberName }} != *{{ .ObjectName }}.{{ .ObjectMemberName }}){{ end }} {
+    updateMap["{{ .MemberRawName }}"] = {{ if not .IsDataTypeJSON }}*{{ end }}in.{{ .MemberName }}
     {{ .ObjectName }}.{{ .ObjectMemberName }} = in.{{ .MemberName }}
 }
 {{ else if .IsNullable -}}
@@ -13,9 +13,9 @@ if in.{{ .MemberName }} != nil {
     }
 }
 {{ else -}}
-if in.{{ .MemberName }} != nil && *in.{{ .MemberName }} != {{ .ObjectName }}.{{ .ObjectMemberName }} {
-    updateMap["{{ .MemberRawName }}"] = *in.{{ .MemberName }}
-    {{ .ObjectName }}.{{ .ObjectMemberName }} = *in.{{ .MemberName }}
+if in.{{ .MemberName }} != nil {{ if not .IsDataTypeJSON }}&& *in.{{ .MemberName }} != {{ .ObjectName }}.{{ .ObjectMemberName }}{{ end }} {
+    updateMap["{{ .MemberRawName }}"] = {{ if not .IsDataTypeJSON }}*{{ end }}in.{{ .MemberName }}
+    {{ .ObjectName }}.{{ .ObjectMemberName }} = {{ if not .IsDataTypeJSON }}*{{ end }}in.{{ .MemberName }}
 }
 {{ end -}}
 {{ else -}}

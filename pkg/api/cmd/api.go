@@ -11,6 +11,6 @@ const (
 var APICmd = &cobra.Command{
 	Use:   "api",
 	Short: "Get go-zero api project by mysql information schema",
-	Example: "  grom api config -n ./api-config.json\n" +
-		"  grom api generate -n ./api-config.json",
+	Example: "  grom api config -n ./config.yaml\n" +
+		"  grom api generate -n ./config.yaml",
 }

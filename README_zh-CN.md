@@ -15,27 +15,207 @@ Grom 是一个可以将 mysql 的表字段转换为 golang 的模型结构的命
 
 使用如下命令下载并安装包：
 
-```shell script
-# 如果 go 版本在 1.16 以前，使用如下命令安装：
-$ GO111MODULE=on go get -u github.com/sliveryou/grom@latest
-
-# 如果 go 版本在 1.16 及以后，使用如下命令安装：
-$ GO111MODULE=on go install github.com/sliveryou/grom@latest
+```bash
+$ go install github.com/sliveryou/grom@latest
 ```
 
-如果要从源码开始构建的话，需要有 [Go](https://golang.org/dl/) 环境（1.16 及以上版本），并使用如下命令：
+如果要从源码开始构建的话，需要有 [Go](https://golang.org/dl/) 环境（**1.19 及以上版本**），并使用如下命令：
 
-```shell script
+```bash
 $ git clone https://github.com/sliveryou/grom.git
 $ cd grom
 $ sh scripts/install.sh
 ```
 
-或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件。
+或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件，选择 `go-zero` 版本。
+
+## Grom API 命令行接口
+
+```bash
+$ grom api -h
+利用 mysql 的信息模式获取 go-zero api 相关项目文件
+
+用法:
+  grom api [command]
+
+例子:
+  grom api config -n ./config.yaml
+  grom api generate -n ./config.yaml
+
+可用命令:
+  config      生成 grom api 的配置文件
+  generate    利用 mysql 的信息模式生成 go-zero api 相关项目文件
+
+标记:
+  -h, --help    获取有关 api 命令的帮助
+
+使用 "grom api [command] --help" 获取有关命令的详细信息。
+
+$ grom api config -h
+将会生成如下的 grom api 配置文件：
+# 数据库相关配置
+# 将要连接的 mysql 主机，必填
+host: "localhost"
+# 将要连接的 mysql 端口，必填
+port: 3306
+# 将要连接的 mysql 用户，必填
+user: "user"
+# 将要连接的 mysql 密码
+password: "password"
+# 将要连接的 mysql 数据库，必填
+database: "database"
+# 将要连接的 mysql 数据表，必填
+tables:
+  - "example_table1"
+  - "example_table2"
+# 将要连接的 mysql 数据表前缀，无论是否需要去除表前缀，如果有统一的表前缀，都建议指定
+table_prefix: "example_"
+# 是否需要去除表前缀，启用后生成的结构体将不包含表前缀
+enable_trim_table_prefix: true
+# 数据表需要忽略的字段
+ignore_fields:
+  - "create_at"
+  - "update_at"
+  - "delete_at"
+
+# api 相关配置（选填）
+# api 标题
+title: "api title"
+# api 描述
+desc: "api desc"
+# api 作者
+author: "author"
+# api 作者联系方式
+email: "author@example.com"
+# api 版本
+version: "v1.0.0"
+
+# 服务名称，建议首字母大写，必填
+service_name: "Example"
+# api 组前缀，建议小写
+group_prefix: ""
+# 路由前缀，建议小写
+route_prefix: "example"
+# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+route_style: "kebab"
+# 是否需要路由单词复数
+enable_plural: true
+
+# 代码生成相关配置
+# 将要生成的文件所在目录，如果为相对路径，则相对于命令执行路径生成，必填
+dir: "testdata/example"
+# 是否需要生成模型，启用后会在 dir/model 目录下生成数据库模型
+enable_model: true
+# 是否启用常用缩写词映射，如 Api -> API，Id -> ID 等
+enable_initialism: false
+
+用法:
+  grom api config [flags]
+
+例子:
+  grom api config -n ./config.yaml
+
+标记:
+  -h, --help          获取有关 config 命令的帮助
+  -n, --name string   生成的 grom api 配置文件的名称（默认为 "config.yaml"）
+
+$ grom api generate -h
+通过 information_schema.columns 表和 information_schema.statistics 表，利用 mysql 的表字段生成 go-zero api 相关项目文件
+
+用法:
+  grom api generate [flags]
+
+例子:
+  grom api generate -n ./config.yaml
+
+标记:
+  -h, --help          获取有关 generate 命令的帮助
+  -n, --name string   指定的 grom api 配置文件的名称（默认为 "config.yaml"）
+```
+
+## Grom API 用法举例
+
+1. 生成并编辑 grom api 的配置文件：
+
+```bash
+$ grom api config -n config.yaml 
+$ vim config.yaml
+# 数据库相关配置
+# 将要连接的 mysql 主机，必填
+host: "localhost"
+# 将要连接的 mysql 端口，必填
+port: 3306
+# 将要连接的 mysql 用户，必填
+user: "user"
+# 将要连接的 mysql 密码
+password: "password"
+# 将要连接的 mysql 数据库，必填
+database: "database"
+# 将要连接的 mysql 数据表，必填
+tables:
+  - "example_table1"
+  - "example_table2"
+# 将要连接的 mysql 数据表前缀，无论是否需要去除表前缀，如果有统一的表前缀，都建议指定
+table_prefix: "example_"
+# 是否需要去除表前缀，启用后生成的结构体将不包含表前缀
+enable_trim_table_prefix: true
+# 数据表需要忽略的字段
+ignore_fields:
+  - "create_at"
+  - "update_at"
+  - "delete_at"
+
+# api 相关配置（选填）
+# api 标题
+title: "api title"
+# api 描述
+desc: "api desc"
+# api 作者
+author: "author"
+# api 作者联系方式
+email: "author@example.com"
+# api 版本
+version: "v1.0.0"
+
+# 服务名称，建议首字母大写，必填
+service_name: "Example"
+# api 组前缀，建议小写
+group_prefix: ""
+# 路由前缀，建议小写
+route_prefix: "example"
+# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+route_style: "kebab"
+# 是否需要路由单词复数
+enable_plural: true
+
+# 代码生成相关配置
+# 将要生成的文件所在目录，如果为相对路径，则相对于命令执行路径生成，必填
+dir: "testdata/example"
+# 是否需要生成模型，启用后会在 dir/model 目录下生成数据库模型
+enable_model: true
+# 是否启用常用缩写词映射，如 Api -> API，Id -> ID 等
+enable_initialism: false
+```
+
+2. 生成 go-zero api 相关项目文件：
+
+**注意：为了有较好的生成效果：**
+
+- 将要连接的 mysql 数据表须有主键（primary key）
+- 表注释和字段注释也应补全
+- 建议需要枚举的字段注释形式为 `字段注释（枚举1-含义 枚举2-含义 枚举3-含义）`，如 `类别（0-正常 1-异常 3-危险）`
+
+```bash
+$ grom api generate -n config.yaml 
+```
+
+然后你将会在前一步骤配置文件中配置的 `dir` 目录下得到生成的代码。
+
+3. 尽情享受吧。
 
 ## Grom 命令行接口
 
-```shell script
+```bash
 $ grom -h
 利用 mysql 的信息模式获取 golang 的模型结构
 
@@ -188,7 +368,7 @@ CREATE TABLE `api` (
 
 2. 生成并编辑 grom 的配置文件：
 
-```shell script
+```bash
 $ grom generate -n grom.json 
 $ vim grom.json
 {
@@ -218,7 +398,7 @@ $ grom convert -n grom.json -o output.go
 
 你也可以在命令行中填写参数，而不生成配置文件：
 
-```shell script
+```bash
 $ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e INITIALISM,FIELD_COMMENT,JSON_TAG,GORM_V2_TAG -o output.go
 ```
 
@@ -228,18 +408,18 @@ $ grom convert -H localhost -P 3306 -u user -p password -d database -t api -e IN
 package model
 
 type API struct {
-    ID          int    `json:"id" gorm:"primaryKey;column:id;type:int(11) auto_increment;comment:接口id"`                           // 接口id
-    Path        string `json:"path" gorm:"column:path;type:varchar(255);uniqueIndex:path_method;comment:接口路径"`                  // 接口路径
-    Description string `json:"description" gorm:"column:description;type:varchar(255);comment:接口描述"`                            // 接口描述
-    Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:接口属组"`                            // 接口属组
-    Method      string `json:"method" gorm:"column:method;type:varchar(255);uniqueIndex:path_method;default:POST;comment:接口方法"` // 接口方法
-    CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:创建时间"`                              // 创建时间
-    UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:更新时间"`                              // 更新时间
+	ID          int    `json:"id" gorm:"primaryKey;column:id;type:int(11) auto_increment;comment:接口id"`                           // 接口id
+	Path        string `json:"path" gorm:"column:path;type:varchar(255);uniqueIndex:path_method;comment:接口路径"`                  // 接口路径
+	Description string `json:"description" gorm:"column:description;type:varchar(255);comment:接口描述"`                            // 接口描述
+	Group       string `json:"group" gorm:"column:group;type:varchar(255);index:group;comment:接口属组"`                            // 接口属组
+	Method      string `json:"method" gorm:"column:method;type:varchar(255);uniqueIndex:path_method;default:POST;comment:接口方法"` // 接口方法
+	CreateTime  int64  `json:"create_time" gorm:"column:create_time;type:bigint(20);comment:创建时间"`                              // 创建时间
+	UpdateTime  int64  `json:"update_time" gorm:"column:update_time;type:bigint(20);comment:更新时间"`                              // 更新时间
 }
 
 // TableName returns the table name of the API model
 func (a *API) TableName() string {
-    return "api"
+	return "api"
 }
 ```
 

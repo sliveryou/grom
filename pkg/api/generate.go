@@ -563,7 +563,7 @@ func buildConvertRPCInfo(fs []StructField) (convertInfo, ifInfo string) {
 	for _, f := range fs {
 		srcName := initialismsReplacer.Replace(f.Name)
 		if IsAutoTimeField(f) || IsTimeField(f) {
-			b.WriteString(f.Name + "%s: 0,\n")
+			b.WriteString(f.Name + ": 0,\n")
 			ib.WriteString(fmt.Sprintf("if src.%s != nil {\ndst.%s = src.%s.UnixMilli()\n}\n", srcName, f.Name, srcName))
 		} else if !f.IsNullable && f.Default != "" {
 			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, getTypeEmptyString(f.Type)))

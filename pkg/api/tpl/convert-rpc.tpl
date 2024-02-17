@@ -1,5 +1,5 @@
 // To{{ .StructName }} {{ .TableComment }}转化
-func To{{ .StructName }}(src *model.{{ .ModelName }}) *pb.{{ .StructName }} {
+func To{{ .StructName }}(src *model.{{ .ModelName }}) {{ if .HasErr }}(*pb.{{ .StructName }}, error){{ else }}*pb.{{ .StructName }}{{ end }} {
 	var dst pb.{{ .StructName }}
 	if src != nil {
 		dst = pb.{{ .StructName }}{
@@ -8,5 +8,5 @@ func To{{ .StructName }}(src *model.{{ .ModelName }}) *pb.{{ .StructName }} {
 		{{ .IfInfo -}}
 	}
 
-	return &dst
+	return &dst{{ if .HasErr }}, nil{{ end }}
 }

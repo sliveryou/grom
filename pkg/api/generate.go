@@ -29,10 +29,12 @@ const (
 	convertAPITplName = "convertAPI"
 	convertRPCTplName = "convertRPC"
 	updateMapTplName  = "updateMap"
+	filterTplName     = "filter"
 
 	convertAPIOut = "convert-api.txt"
 	convertRPCOut = "convert-rpc.txt"
 	updateMapOut  = "update-map.txt"
+	filterOut     = "filter.txt"
 	serverAPIOut  = "server"
 	modelDir      = "model"
 
@@ -42,6 +44,8 @@ const (
 	autoTimeSuffix          = "_at"
 	apiFileSuffix           = ".api"
 	goFileSuffix            = ".go"
+	listSuffix              = "List"
+	arraySuffix             = "Array"
 	boolTypeEnums           = "0 1"
 	defaultCurrentTimestamp = "CURRENT_TIMESTAMP"
 	defaultIdComment        = "ID"
@@ -49,6 +53,7 @@ const (
 	gormDeleteAt            = "gorm.DeletedAt"
 	dataTypeJSON            = "json"
 	dataTypeMap             = "map[string]interface{}"
+	dataTypeSlice           = "[]string"
 	dataTypesJSON           = "datatypes.JSON"
 )
 
@@ -57,6 +62,11 @@ const (
 	RouteStyleSnake = "snake"
 	// RouteStyleKebab kebab route style.
 	RouteStyleKebab = "kebab"
+
+	// QueryStyleValue value query style.
+	QueryStyleValue = "value"
+	// QueryStylePointer pointer query style.
+	QueryStylePointer = "pointer"
 )
 
 var (
@@ -72,6 +82,8 @@ var (
 	convertRPCTpl string
 	//go:embed tpl/update-map.tpl
 	updateMapTpl string
+	//go:embed tpl/filter.tpl
+	filterTpl string
 
 	errDBConfig         = stderrors.New("invalid db config")
 	errEmptyServiceName = stderrors.New("service name can not be empty")
@@ -101,6 +113,10 @@ func init() {
 	if err != nil {
 		log.Fatalln(color.Red.Render("parse update-map.tpl err:", err))
 	}
+	generator, err = generator.New(filterTplName).Parse(filterTpl)
+	if err != nil {
+		log.Fatalln(color.Red.Render("parse filter.tpl err:", err))
+	}
 }
 
 // GenerateProject generates the output project by project config.
@@ -109,7 +125,7 @@ func GenerateProject(pc ProjectConfig) error {
 		return errors.WithMessage(err, "Check err")
 	}
 
-	var cab, crb, umb strings.Builder
+	var cab, crb, umb, fb strings.Builder
 	if err := mkdirIfNotExist(path.Join(pc.Dir, modelDir)); err != nil {
 		return errors.WithMessage(err, "mkdirIfNotExist err")
 	}
@@ -185,6 +201,12 @@ func GenerateProject(pc ProjectConfig) error {
 			return errors.WithMessage(err, "GenerateUpdateMap err")
 		}
 		umb.WriteString(um + "\n\n")
+
+		f, err := GenerateFilter(c, fields)
+		if err != nil {
+			return errors.WithMessage(err, "GenerateFilter err")
+		}
+		fb.WriteString(f + "\n\n")
 	}
 
 	if len(apiImports) > 0 {
@@ -221,6 +243,11 @@ func GenerateProject(pc ProjectConfig) error {
 			return errors.WithMessage(err, "os.WriteFile err")
 		}
 	}
+	if f := fb.String(); f != "" {
+		if err := os.WriteFile(path.Join(pc.Dir, filterOut), []byte(f[:len(f)-1]), writeFilePerm); err != nil {
+			return errors.WithMessage(err, "os.WriteFile err")
+		}
+	}
 
 	return nil
 }
@@ -233,6 +260,7 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	if c.EnablePlural {
 		routeName = inflection.Plural(routeName)
 	}
+	structGetInfo := buildStructGetInfo(gc.StructFields, c.QueryStyle == QueryStylePointer)
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		TableComment          string
 		StructName            string // camel
@@ -272,10 +300,10 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 		IdRawNamePlural:       gc.IdRawNamePlural,
 		IdLabel:               convertComment(gc.IdComment, true),
 		StructInfo:            buildStructInfo(gc.StructFields),
-		StructGetInfo:         buildStructGetInfo(gc.StructFields),
+		StructGetInfo:         structGetInfo,
 		StructCreateInfo:      buildStructCreateInfo(gc.StructFields),
 		StructUpdateInfo:      buildStructUpdateInfo(gc.StructFields),
-		StructFilterInfo:      strings.ReplaceAll(buildStructGetInfo(gc.StructFields), "`form:", "`json:"),
+		StructFilterInfo:      strings.ReplaceAll(structGetInfo, "`form:", "`json:"),
 		StructBatchUpdateInfo: buildStructUpdateInfo(gc.StructFields, true),
 	})
 	if err != nil {
@@ -329,7 +357,7 @@ func buildStructInfo(fs []StructField) string {
 }
 
 // buildStructGetInfo builds struct create info.
-func buildStructGetInfo(fs []StructField) string {
+func buildStructGetInfo(fs []StructField, isPointerStyle bool) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
@@ -342,7 +370,9 @@ func buildStructGetInfo(fs []StructField) string {
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\" label:%q",
 				f.Enums, convertComment(f.Comment, true))
 		}
-		if contains([]string{util.GoInt32, util.GoBool}, f.Type) {
+		if isPointerStyle {
+			f.Type = toPointer(f.Type)
+		} else if contains([]string{util.GoInt32, util.GoBool}, f.Type) {
 			f.Type = toPointer(f.Type)
 		}
 		field := fmt.Sprintf("\t%s %s `%s`", f.Name, f.Type, tag)
@@ -365,7 +395,7 @@ func buildStructCreateInfo(fs []StructField) string {
 		}
 		needLabel := false
 		tag := fmt.Sprintf("json:\"%s,optional\"", f.RawName)
-		if !f.IsNullable && f.Default == "" {
+		if !f.IsNullable && isDefaultEmpty(f.Default, f.Type) {
 			validate := " validate:\"required\""
 			tag = fmt.Sprintf("json:%q", f.RawName)
 			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
@@ -382,7 +412,7 @@ func buildStructCreateInfo(fs []StructField) string {
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\"", f.Enums)
 			needLabel = true
 		}
-		if f.Default != "" {
+		if !isDefaultEmpty(f.Default, f.Type) {
 			f.Type = toPointer(f.Type)
 		}
 		if needLabel && f.Comment != "" {
@@ -419,7 +449,7 @@ func buildStructUpdateInfo(fs []StructField, isBatchUpdate ...bool) string {
 		}
 		needLabel := false
 		tag := fmt.Sprintf("%s:\"%s,optional\"", prefix, f.RawName)
-		if !f.IsNullable && f.Default == "" && !isBatch {
+		if !f.IsNullable && isDefaultEmpty(f.Default, f.Type) && !isBatch {
 			validate := " validate:\"required\""
 			tag = fmt.Sprintf("%s:%q", prefix, f.RawName)
 			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
@@ -438,7 +468,7 @@ func buildStructUpdateInfo(fs []StructField, isBatchUpdate ...bool) string {
 				needLabel = true
 			}
 		}
-		if f.Default != "" {
+		if !isDefaultEmpty(f.Default, f.Type) {
 			f.Type = toPointer(f.Type)
 		}
 		if needLabel && f.Comment != "" {
@@ -537,12 +567,14 @@ func GenerateConvertRPC(c Config, fs []*util.StructField) (string, error) {
 		ModelName    string
 		ConvertInfo  string
 		IfInfo       string
+		HasErr       bool
 	}{
 		TableComment: c.TableComment,
 		StructName:   c.StructName,
 		ModelName:    gc.ModelName,
 		ConvertInfo:  convertInfo,
 		IfInfo:       ifInfo,
+		HasErr:       strings.Contains(ifInfo, "err"),
 	})
 	if err != nil {
 		return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
@@ -565,7 +597,11 @@ func buildConvertRPCInfo(fs []StructField) (convertInfo, ifInfo string) {
 		if IsAutoTimeField(f) || IsTimeField(f) {
 			b.WriteString(f.Name + ": 0,\n")
 			ib.WriteString(fmt.Sprintf("if src.%s != nil {\ndst.%s = src.%s.UnixMilli()\n}\n", srcName, f.Name, srcName))
-		} else if !f.IsNullable && f.Default != "" {
+		} else if f.Type == dataTypeSlice {
+			b.WriteString(f.Name + ": []string{},\n")
+			ib.WriteString(fmt.Sprintf("if src.%s != nil {\nif err := json.Unmarshal(src.%s, &dst.%s); err != nil {\nreturn nil, errors.WithMessage(err, \"json.Unmarshal %s err\")\n}\n}\n",
+				f.Name, f.Name, f.Name, f.Name))
+		} else if !f.IsNullable && !isDefaultEmpty(f.Default, f.Type) {
 			b.WriteString(fmt.Sprintf("%s: %s,\n", f.Name, getTypeEmptyString(f.Type)))
 			ib.WriteString(fmt.Sprintf("if src.%s != nil {\ndst.%s = *src.%s\n}\n", srcName, f.Name, srcName))
 		} else {
@@ -606,11 +642,73 @@ func GenerateUpdateMap(c Config, fs []*util.StructField) (string, error) {
 			MemberLowerCamelName: strcase.ToLowerCamel(field.Name),
 			ObjectName:           strcase.ToLowerCamel(gc.RouteName),
 			ObjectMemberName:     initialismsReplacer.Replace(field.Name),
-			HasDefault:           field.Default != "",
+			HasDefault:           !isDefaultEmpty(field.Default, field.Type),
 			IsNullable:           field.IsNullable,
 			IsTimeField:          IsTimeField(field),
 			IsPointer:            isPointerWhenUpdated(field),
 			IsDataTypeJSON:       field.DataType == dataTypeJSON,
+		})
+		if err != nil {
+			return "", errors.WithMessage(err, "generator.ExecuteTemplate err")
+		}
+	}
+
+	code, err := format.Source(buffer.Bytes())
+	if err != nil {
+		return "", errors.WithMessage(err, "format.Source err")
+	}
+
+	return string(code[:len(code)-1]), nil
+}
+
+// GenerateFilter generates the output filter by api config and structure fields.
+func GenerateFilter(c Config, fs []*util.StructField) (string, error) {
+	gc := getGenerateConfig(c, fs)
+	buffer := &bytes.Buffer{}
+
+	symbol := strings.Repeat("-", 20)
+	buffer.WriteString(fmt.Sprintf("// %s %s %s %s //\n",
+		symbol, c.StructName, c.TableComment, symbol))
+
+	smallStructName := toAbbr(gc.RouteName)
+	buffer.WriteString(fmt.Sprintf("// 构建查询条件\n%s := l.svcCtx.Q.%s\n%sq := %s.WithContext(l.ctx).Order(%s.%s.Desc())\n",
+		smallStructName, c.StructName, smallStructName, smallStructName, smallStructName, initialismsReplacer.Replace(gc.IdName)))
+	buffer.WriteString(fmt.Sprintf("if in.%s != nil {\n%sq = %sq.Where(%s.%s.In(in.%s...))\n}\n",
+		gc.IdNamePlural, smallStructName, smallStructName, smallStructName, initialismsReplacer.Replace(gc.IdName), gc.IdNamePlural))
+
+	for _, field := range gc.StructFields {
+		isPointer := false
+		if field.IsPrimaryKey || isReferenceType(field.Type) {
+			continue
+		}
+		if c.QueryStyle == QueryStylePointer {
+			isPointer = true
+		} else {
+			if contains([]string{util.GoInt, util.GoInt32}, field.Type) && field.Enums != "" {
+				isPointer = true
+			}
+			if contains([]string{util.GoInt32, util.GoBool}, field.Type) {
+				isPointer = true
+			}
+		}
+		err := generator.ExecuteTemplate(buffer, filterTplName, struct {
+			SmallStructName string
+			IsPointer       bool
+			Name            string
+			ReplaceName     string
+			IsStringType    bool
+			IsNumberType    bool
+			IsTimeType      bool
+			IsBoolType      bool
+		}{
+			SmallStructName: smallStructName,
+			IsPointer:       isPointer,
+			Name:            field.Name,
+			ReplaceName:     initialismsReplacer.Replace(field.Name),
+			IsStringType:    field.Type == util.GoString,
+			IsNumberType:    IsNumberField(field),
+			IsTimeType:      IsTimeField(field),
+			IsBoolType:      field.Type == util.GoBool,
 		})
 		if err != nil {
 			return "", errors.WithMessage(err, "generator.ExecuteTemplate err")

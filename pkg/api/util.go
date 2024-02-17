@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 
 	"github.com/sliveryou/grom/util"
@@ -79,6 +80,8 @@ func mkdirIfNotExist(dir string) error {
 // getTypeEmptyString gets the type empty value string.
 func getTypeEmptyString(t string) string {
 	switch t {
+	case "":
+		return ""
 	case util.GoString:
 		return "\"\""
 	case util.GoInt, util.GoInt32, util.GoInt64, util.GoFloat32, util.GoFloat64:
@@ -87,34 +90,84 @@ func getTypeEmptyString(t string) string {
 		return "0"
 	case util.GoBool:
 		return "false"
-	case util.GoBytes:
+	case util.GoBytes, util.GoPointerTime:
 		return "nil"
+	case util.GoTime:
+		return "time.Now()"
 	}
 
 	return "nil"
 }
 
+// isDefaultEmpty reports whether v is default empty value.
+func isDefaultEmpty(v, t string) bool {
+	if v == "" {
+		return true
+	}
+
+	switch t = strings.TrimLeft(t, "*"); t {
+	case "":
+		return true
+	case util.GoString:
+		return v == ""
+	case util.GoInt, util.GoInt32, util.GoInt64, util.GoFloat32, util.GoFloat64:
+		return v == "0"
+	case util.GoUint, util.GoUint32, util.GoUint64:
+		return v == "0"
+	case util.GoBool:
+		return v == "false" || v == "0"
+	case util.GoTime, util.GoPointerTime:
+		return v == "CURRENT_TIMESTAMP"
+	}
+
+	return true
+}
+
 // toPointer makes the type t to pointer type.
 func toPointer(t string) string {
+	if t == "" {
+		return ""
+	}
+
 	if isReferenceType(t) {
 		return t
 	}
+
 	return "*" + strings.TrimPrefix(t, "*")
 }
 
 // isReferenceType reports whether t is reference type.
 func isReferenceType(t string) bool {
+	t = strings.TrimLeft(t, "*")
+
 	return strings.HasPrefix(t, "map") ||
 		strings.HasPrefix(t, "[]")
 }
 
 // isPointerWhenUpdated reports whether f is pointer type when updated.
 func isPointerWhenUpdated(f StructField) bool {
-	if f.IsNullable || f.Default != "" ||
+	if f.IsNullable || !isDefaultEmpty(f.Default, f.Type) ||
 		f.Type == util.GoInt32 || f.Type == util.GoBool ||
 		(f.Type == util.GoInt && f.Enums != "") {
 		return true
 	}
 
 	return false
+}
+
+// toAbbr converts the string s to abbreviation.
+func toAbbr(s string) string {
+	s = strcase.ToCamel(strings.TrimSpace(s))
+	n := strings.Builder{}
+
+	for _, v := range []byte(s) {
+		vIsCap := v >= 'A' && v <= 'Z'
+		if vIsCap {
+			v += 'a'
+			v -= 'A'
+			n.WriteByte(v)
+		}
+	}
+
+	return n.String()
 }

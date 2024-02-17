@@ -27,7 +27,7 @@ $ cd grom
 $ sh scripts/install.sh
 ```
 
-或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件，选择 `go-zero` 版本。
+或者从 github 的 [release](https://github.com/sliveryou/grom/releases) 页面下载预编译好的二进制文件，选择 `gozero` 版本。
 
 ## Grom API 命令行接口
 
@@ -96,8 +96,10 @@ service_name: "Example"
 group_prefix: ""
 # 路由前缀，建议小写
 route_prefix: "example"
-# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+# 路由风格，可以为 snake（'_'）或 kebab（'-'），默认 kebab
 route_style: "kebab"
+# 查询风格，可以为 value 或 pointer，默认 pointer
+query_style: "value"
 # 是否需要路由单词复数
 enable_plural: true
 
@@ -183,8 +185,10 @@ service_name: "Example"
 group_prefix: ""
 # 路由前缀，建议小写
 route_prefix: "example"
-# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+# 路由风格，可以为 snake（'_'）或 kebab（'-'），默认 kebab
 route_style: "kebab"
+# 查询风格，可以为 value 或 pointer，默认 pointer
+query_style: "value"
 # 是否需要路由单词复数
 enable_plural: true
 
@@ -199,17 +203,27 @@ enable_initialism: false
 
 2. 生成 go-zero api 相关项目文件：
 
-**注意：为了有较好的生成效果：**
+**注意：为了有较好的生成效果，请谨记如下规则：**
 
 - 将要连接的 mysql 数据表须有主键（primary key）
 - 表注释和字段注释也应补全
 - 建议需要枚举的字段注释形式为 `字段注释（枚举1-含义 枚举2-含义 枚举3-含义）`，如 `类别（0-正常 1-异常 3-危险）`
+- json 类型的字段，如果名称后缀为 `list` 或 `array` 或 `复数形式单词`，则转化为 `[]string` 类型，否则转化为 `map[string]interface{}` 类型
+- 字段如果为 `not null`，在 `Create` 和 `Update` 相关方法中会设置成必填参数 
 
 ```bash
 $ grom api generate -n config.yaml 
 ```
 
-然后你将会在前一步骤配置文件中配置的 `dir` 目录下得到生成的代码。
+然后你将会在前一步骤配置文件中配置的 `dir` 目录下得到生成的代码：
+
+- `dir/model/*.go` 生成的数据库模型 go 文件
+- `dir/*.api` 生成的 go-zero api 文件
+- `dir/*.proto` 生成的 grpc proto 文件
+- `dir/convert-api.txt` api 层面的类型转换代码片段
+- `dir/convert-rpc.txt` rpc 层面的类型转换代码片段
+- `dir/filter.txt` 构建数据库模型查询条件的代码片段
+- `dir/update-map.txt` 构建数据库模型更新 map 的代码片段
 
 3. 尽情享受吧。
 

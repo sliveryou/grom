@@ -41,8 +41,10 @@ service_name: "Example"
 group_prefix: ""
 # 路由前缀，建议小写
 route_prefix: "example"
-# 路由风格，可以为 snake（'_'）或 kebab（'-'）
+# 路由风格，可以为 snake（'_'）或 kebab（'-'），默认 kebab
 route_style: "kebab"
+# 查询风格，可以为 value 或 pointer，默认 pointer
+query_style: "value"
 # 是否需要路由单词复数
 enable_plural: true
 

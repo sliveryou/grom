@@ -29,6 +29,7 @@ type Config struct {
 	RoutePrefix  string `json:"route_prefix"` // lower
 	GroupPrefix  string `json:"group_prefix"` // lower
 	RouteStyle   string `json:"route_style"`  // one of [snake, kebab], default is kebab
+	QueryStyle   string `json:"query_style"`  // one of [value, pointer], default is pointer
 	EnablePlural bool   `json:"enable_plural"`
 	EnableModel  bool   `json:"enable_model"`
 }
@@ -91,6 +92,10 @@ func (pc *ProjectConfig) Check() error {
 		pc.RouteStyle != RouteStyleKebab {
 		pc.RouteStyle = RouteStyleKebab
 	}
+	if pc.QueryStyle != QueryStyleValue &&
+		pc.QueryStyle != QueryStylePointer {
+		pc.QueryStyle = QueryStylePointer
+	}
 
 	return nil
 }
@@ -123,6 +128,12 @@ func ToStructField(sf *util.StructField) StructField {
 		IsPrimaryKey: sf.IsPrimaryKey,
 		IsNullable:   sf.IsNullable,
 	}
+}
+
+// IsNumberField reports whether f is number field.
+func IsNumberField(f StructField) bool {
+	return !IsTimeField(f) && (f.Type == util.GoInt64 || f.Type == util.GoInt32 ||
+		f.Type == util.GoFloat64 || f.Type == util.GoFloat32)
 }
 
 // IsTimeField reports whether f is time field.
@@ -175,7 +186,12 @@ func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 		fi.Type = strings.TrimPrefix(fi.Type, unsignedPrefix)
 		// convert json to map
 		if fi.DataType == dataTypeJSON {
-			fi.Type = dataTypeMap
+			if strings.HasSuffix(fi.Name, listSuffix) || strings.HasSuffix(fi.Name, arraySuffix) ||
+				(inflection.Singular(fi.Name) != fi.Name && inflection.Plural(fi.Name) == fi.Name) {
+				fi.Type = dataTypeSlice
+			} else {
+				fi.Type = dataTypeMap
+			}
 		} else if fi.Type == util.GoTime {
 			// convert time.Time to int64
 			fi.Type = util.GoInt64
@@ -241,7 +257,7 @@ func cloneStructFields(cc *util.CmdConfig, fs []*util.StructField) []*util.Struc
 			cloneF.Type = dataTypesJSON
 			cc.EnableDataTypes = true
 		}
-		if cloneF.Default != "" {
+		if !isDefaultEmpty(cloneF.Default, cloneF.Type) {
 			cloneF.Type = toPointer(cloneF.Type)
 		}
 

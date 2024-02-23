@@ -155,6 +155,7 @@ type ColumnInfo struct {
 	IsAutoIncrement bool         `mysql:"EXTRA"`
 	IsUnsigned      bool         `mysql:"COLUMN_TYPE"`
 	IsNullable      bool         `mysql:"IS_NULLABLE"`
+	Another         string       `mysql:"-"`
 	Indexes         []*IndexInfo `mysql:"-"`
 	UniqueIndexes   []*IndexInfo `mysql:"-"`
 }

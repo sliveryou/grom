@@ -7,5 +7,6 @@ gorm:"
 {{- range $i, $v := .UniqueIndexes }}
     {{- if eq $i 0 }};uniqueIndex:{{ $v.Name }}{{ else }},{{ $v.Name }}{{ end }}{{ end -}}
 {{- if .Default }};default:{{ .Default }}{{ end -}}
+{{- if .Another }};{{ .Another }}{{ end -}}
 {{- if .Comment }};comment:{{ .Comment }}{{ end -}}
 "

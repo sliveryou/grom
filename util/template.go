@@ -12,6 +12,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	createAt       = "create_at"
+	updateAt       = "update_at"
+	autoCreateTime = "autoCreateTime:milli"
+	autoUpdateTime = "autoUpdateTime:milli"
+)
+
 var (
 	generator *template.Template
 
@@ -138,4 +145,16 @@ func uniqueStrings(slice []string) []string {
 	}
 
 	return result
+}
+
+// isTimeType reports whether the data type is time type.
+func isTimeType(dataType string) bool {
+	timeTypes := []string{"year", "date", "datetime", "time", "timestamp"}
+	for _, timeType := range timeTypes {
+		if dataType == timeType {
+			return true
+		}
+	}
+
+	return false
 }

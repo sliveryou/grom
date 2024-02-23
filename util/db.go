@@ -131,6 +131,14 @@ func getColumnInfos(c *CmdConfig) ([]*ColumnInfo, error) {
 			IsUnsigned: strings.Contains(ct, "unsigned") && !c.DisableUnsigned, IsNullable: in == "YES",
 		}
 
+		if isTimeType(ci.DataType) {
+			switch ci.Name {
+			case createAt:
+				ci.Another = autoCreateTime
+			case updateAt:
+				ci.Another = autoUpdateTime
+			}
+		}
 		ci.Indexes, ci.UniqueIndexes = getColumnIndexInfos(indexInfos, ci.Name)
 		columnInfos = append(columnInfos, &ci)
 	}

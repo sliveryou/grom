@@ -264,6 +264,7 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
 		TableComment          string
 		StructName            string // camel
+		StructNamePlural      string // camel plural
 		RouteName             string // snake or kebab
 		GroupName             string // lower
 		APIInfo               string
@@ -286,6 +287,7 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	}{
 		TableComment:          c.TableComment,
 		StructName:            c.StructName,
+		StructNamePlural:      inflection.Plural(c.StructName),
 		RouteName:             routeName,
 		GroupName:             gc.GroupName,
 		APIInfo:               buildAPIInfo(c),

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"go/format"
 	"log"
-	"os"
 	"path"
 	"strings"
 	"text/template"
@@ -36,7 +35,11 @@ const (
 	updateMapOut  = "update-map.txt"
 	filterOut     = "filter.txt"
 	serverAPIOut  = "server"
-	modelDir      = "model"
+
+	modelDir = "model"
+	apiDir   = "api"
+	pbDir    = "pb"
+	gistDir  = "gist"
 
 	writeFilePerm           = 0o666
 	unsignedPrefix          = "u"
@@ -124,34 +127,28 @@ func GenerateProject(pc ProjectConfig) error {
 	if err := pc.Check(); err != nil {
 		return errors.WithMessage(err, "Check err")
 	}
-
-	var cab, crb, umb, fb strings.Builder
-	if err := mkdirIfNotExist(path.Join(pc.Dir, modelDir)); err != nil {
-		return errors.WithMessage(err, "mkdirIfNotExist err")
-	}
 	defer util.CloseDB()
 
+	var cab, crb, umb, fb strings.Builder
 	apiImports := make([]string, 0, len(pc.Tables))
 	for _, table := range pc.Tables {
 		if table == "" {
 			continue
 		}
 
-		var apiName, modelName string
+		var baseName, apiName, modelName string
 		c := pc.Config
 		c.Table = table
 		if pc.EnableTrimTablePrefix {
 			c.StructName = strcase.ToCamel(strings.TrimPrefix(table, pc.TablePrefix))
-			baseName := strings.ToLower(c.StructName)
-			apiName = baseName + apiFileSuffix
-			modelName = baseName + goFileSuffix
+			baseName = strings.ToLower(c.StructName)
 		} else {
 			c.StructName = strcase.ToCamel(table)
 			c.RouteName = strcase.ToDelimited(strings.TrimPrefix(table, pc.TablePrefix), c.GetDelimiter())
-			baseName := strings.ToLower(strcase.ToCamel(c.RouteName))
-			apiName = baseName + apiFileSuffix
-			modelName = baseName + goFileSuffix
+			baseName = strings.ToLower(strcase.ToCamel(c.RouteName))
 		}
+		apiName = baseName + apiFileSuffix
+		modelName = baseName + goFileSuffix
 
 		cc := c.GetCmdConfig()
 		fields, err := util.GetFields(cc)
@@ -169,8 +166,8 @@ func GenerateProject(pc ProjectConfig) error {
 			if err != nil {
 				return errors.WithMessage(err, "util.GenerateCode err")
 			}
-			if err := os.WriteFile(path.Join(pc.Dir, modelDir, modelName), []byte(model), writeFilePerm); err != nil {
-				return errors.WithMessage(err, "os.WriteFile err")
+			if err := writeFile(path.Join(pc.Dir, modelDir, modelName), model); err != nil {
+				return errors.WithMessage(err, "writeFile err")
 			}
 		}
 
@@ -179,8 +176,8 @@ func GenerateProject(pc ProjectConfig) error {
 		if err != nil {
 			return errors.WithMessage(err, "GenerateAPI err")
 		}
-		if err := os.WriteFile(path.Join(pc.Dir, apiName), []byte(api), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(path.Join(pc.Dir, apiDir, apiName), api); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
 		apiImports = append(apiImports, apiName)
 
@@ -215,37 +212,38 @@ func GenerateProject(pc ProjectConfig) error {
 		if fileName == "" {
 			fileName = serverAPIOut
 		}
-		fileName = path.Join(pc.Dir, fileName+apiFileSuffix)
+		dirName := path.Join(pc.Dir, pbDir)
+		fileName = path.Join(pc.Dir, apiDir, fileName+apiFileSuffix)
 
 		out, err := GenerateServerAPI(c, apiImports, fileName)
 		if err != nil {
 			return errors.WithMessage(err, "GenerateServerAPI err")
 		}
-		if err := os.WriteFile(fileName, []byte(out), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(fileName, out); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
-		if err := protogen.DoGenProto(fileName, pc.Dir); err != nil {
+		if err := protogen.DoGenProto(fileName, dirName); err != nil {
 			return errors.WithMessage(err, "protogen.DoGenProto err")
 		}
 	}
 	if ca := cab.String(); ca != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, convertAPIOut), []byte(ca[:len(ca)-1]), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(path.Join(pc.Dir, gistDir, convertAPIOut), ca[:len(ca)-1]); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
 	}
 	if cr := crb.String(); cr != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, convertRPCOut), []byte(cr[:len(cr)-1]), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(path.Join(pc.Dir, gistDir, convertRPCOut), cr[:len(cr)-1]); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
 	}
 	if um := umb.String(); um != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, updateMapOut), []byte(um[:len(um)-1]), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(path.Join(pc.Dir, gistDir, updateMapOut), um[:len(um)-1]); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
 	}
 	if f := fb.String(); f != "" {
-		if err := os.WriteFile(path.Join(pc.Dir, filterOut), []byte(f[:len(f)-1]), writeFilePerm); err != nil {
-			return errors.WithMessage(err, "os.WriteFile err")
+		if err := writeFile(path.Join(pc.Dir, gistDir, filterOut), f[:len(f)-1]); err != nil {
+			return errors.WithMessage(err, "writeFile err")
 		}
 	}
 

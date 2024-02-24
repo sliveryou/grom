@@ -218,12 +218,12 @@ $ grom api generate -n config.yaml
 然后你将会在前一步骤配置文件中配置的 `dir` 目录下得到生成的代码：
 
 - `dir/model/*.go` 生成的数据库模型 go 文件
-- `dir/*.api` 生成的 go-zero api 文件
-- `dir/*.proto` 生成的 grpc proto 文件
-- `dir/convert-api.txt` api 层面的类型转换代码片段
-- `dir/convert-rpc.txt` rpc 层面的类型转换代码片段
-- `dir/filter.txt` 构建数据库模型查询条件的代码片段
-- `dir/update-map.txt` 构建数据库模型更新 map 的代码片段
+- `dir/api/*.api` 生成的 go-zero api 文件
+- `dir/pb/*.proto` 生成的 grpc proto 文件
+- `dir/gist/convert-api.txt` api 层面的类型转换代码片段
+- `dir/gist/convert-rpc.txt` rpc 层面的类型转换代码片段
+- `dir/gist/filter.txt` 构建数据库模型查询条件的代码片段
+- `dir/gist/update-map.txt` 构建数据库模型更新 map 的代码片段
 
 3. 尽情享受吧。
 

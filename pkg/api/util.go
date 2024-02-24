@@ -2,6 +2,7 @@ package api
 
 import (
 	"os"
+	"path"
 	"regexp"
 	"strings"
 
@@ -72,6 +73,19 @@ func mkdirIfNotExist(dir string) error {
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		return errors.WithMessage(os.MkdirAll(dir, os.ModePerm), "os.MkdirAll err")
+	}
+
+	return nil
+}
+
+// writeFile writes the content to the named file.
+func writeFile(name, content string) error {
+	if err := mkdirIfNotExist(path.Dir(name)); err != nil {
+		return errors.WithMessage(err, "mkdirIfNotExist err")
+	}
+
+	if err := os.WriteFile(name, []byte(content), writeFilePerm); err != nil {
+		return errors.WithMessage(err, "os.WriteFile err")
 	}
 
 	return nil

@@ -36,7 +36,7 @@ jobs:
 
       - run: go mod tidy
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.56.1
           args: "--out-format colored-line-number"

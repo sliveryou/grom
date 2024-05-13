@@ -258,13 +258,20 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	if c.EnablePlural {
 		routeName = inflection.Plural(routeName)
 	}
+	reqName, respName := "Req", "Resp"
+	if !c.EnableStructAbbr {
+		reqName, respName = "Request", "Response"
+	}
 	structGetInfo := buildStructGetInfo(gc.StructFields, c.QueryStyle == QueryStylePointer)
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
+		ReqName               string
+		RespName              string
 		TableComment          string
 		StructName            string // camel
 		StructNamePlural      string // camel plural
 		RouteName             string // snake or kebab
 		GroupName             string // lower
+		Delimiter             string
 		APIInfo               string
 		ServiceName           string
 		RoutePrefix           string
@@ -283,11 +290,14 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 		StructFilterInfo      string
 		StructBatchUpdateInfo string
 	}{
+		ReqName:               reqName,
+		RespName:              respName,
 		TableComment:          c.TableComment,
 		StructName:            c.StructName,
 		StructNamePlural:      inflection.Plural(c.StructName),
 		RouteName:             routeName,
 		GroupName:             gc.GroupName,
+		Delimiter:             string(c.GetDelimiter()),
 		APIInfo:               buildAPIInfo(c),
 		ServiceName:           c.ServiceName,
 		RoutePrefix:           strings.Trim(c.RoutePrefix, `/`),

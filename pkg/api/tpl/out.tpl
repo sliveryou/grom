@@ -10,64 +10,64 @@ syntax = "v1"
 )
 service {{ .ServiceName }} {
     @doc (
-        summary: "查询{{ .TableComment }}"
+        summary: "获取{{ .TableComment }}"
     )
     @handler Get{{ .StructName }}
-    get /{{ .RouteName }}/:{{ .IdRawName }} (Get{{ .StructName }}Req) returns (Get{{ .StructName }}Resp)
+    get /{{ .RouteName }}/:{{ .IdRawName }} (Get{{ .StructName }}{{ .ReqName }}) returns (Get{{ .StructName }}{{ .RespName }})
 
     @doc (
-        summary: "获取{{ .TableComment }}分页"
+        summary: "列出{{ .TableComment }}"
     )
-    @handler Paginate{{ .StructName }}
-    get /{{ .RouteName }} (Paginate{{ .StructName }}Req) returns (Paginate{{ .StructName }}Resp)
+    @handler List{{ .StructNamePlural }}
+    get /{{ .RouteName }} (List{{ .StructNamePlural }}{{ .ReqName }}) returns (List{{ .StructNamePlural }}{{ .RespName }})
 
     @doc (
         summary: "创建{{ .TableComment }}"
     )
     @handler Create{{ .StructName }}
-    post /{{ .RouteName }} (Create{{ .StructName }}Req) returns (Create{{ .StructName }}Resp)
+    post /{{ .RouteName }} (Create{{ .StructName }}{{ .ReqName }}) returns (Create{{ .StructName }}{{ .RespName }})
 
     @doc (
         summary: "更新{{ .TableComment }}"
     )
     @handler Update{{ .StructName }}
-    put /{{ .RouteName }}/:{{ .IdRawName }} (Update{{ .StructName }}Req) returns (Update{{ .StructName }}Resp)
+    put /{{ .RouteName }}/:{{ .IdRawName }} (Update{{ .StructName }}{{ .ReqName }}) returns (Update{{ .StructName }}{{ .RespName }})
 
     @doc (
         summary: "删除{{ .TableComment }}"
     )
     @handler Delete{{ .StructName }}
-    delete /{{ .RouteName }}/:{{ .IdRawName }} (Delete{{ .StructName }}Req) returns (Delete{{ .StructName }}Resp)
+    delete /{{ .RouteName }}/:{{ .IdRawName }} (Delete{{ .StructName }}{{ .ReqName }}) returns (Delete{{ .StructName }}{{ .RespName }})
 
     @doc (
-        summary: "部分更新{{ .TableComment }}"
+        summary: "修补{{ .TableComment }}"
     )
     @handler Patch{{ .StructName }}
-    patch /{{ .RouteName }}/:{{ .IdRawName }} (Patch{{ .StructName }}Req) returns (Patch{{ .StructName }}Resp)
+    patch /{{ .RouteName }}/:{{ .IdRawName }} (Patch{{ .StructName }}{{ .ReqName }}) returns (Patch{{ .StructName }}{{ .RespName }})
 
     @doc (
-        summary: "获取{{ .TableComment }}列表"
+        summary: "批量获取{{ .TableComment }}"
     )
-    @handler List{{ .StructName }}
-    post /{{ .RouteName }}/list (List{{ .StructName }}Req) returns (List{{ .StructName }}Resp)
+    @handler BatchGet{{ .StructNamePlural }}
+    post /{{ .RouteName }}/batch{{ .Delimiter }}get (BatchGet{{ .StructNamePlural }}{{ .ReqName }}) returns (BatchGet{{ .StructNamePlural }}{{ .RespName }})
 
     @doc (
         summary: "批量创建{{ .TableComment }}"
     )
-    @handler Create{{ .StructNamePlural }}
-    post /{{ .RouteName }}/batch/create (Create{{ .StructNamePlural }}Req) returns (Create{{ .StructNamePlural }}Resp)
+    @handler BatchCreate{{ .StructNamePlural }}
+    post /{{ .RouteName }}/batch{{ .Delimiter }}create (BatchCreate{{ .StructNamePlural }}{{ .ReqName }}) returns (BatchCreate{{ .StructNamePlural }}{{ .RespName }})
 
     @doc (
         summary: "批量更新{{ .TableComment }}"
     )
-    @handler Update{{ .StructNamePlural }}
-    post /{{ .RouteName }}/batch/update (Update{{ .StructNamePlural }}Req) returns (Update{{ .StructNamePlural }}Resp)
+    @handler BatchUpdate{{ .StructNamePlural }}
+    post /{{ .RouteName }}/batch{{ .Delimiter }}update (BatchUpdate{{ .StructNamePlural }}{{ .ReqName }}) returns (BatchUpdate{{ .StructNamePlural }}{{ .RespName }})
 
     @doc (
         summary: "批量删除{{ .TableComment }}"
     )
-    @handler Delete{{ .StructNamePlural }}
-    post /{{ .RouteName }}/batch/delete (Delete{{ .StructNamePlural }}Req) returns (Delete{{ .StructNamePlural }}Resp)
+    @handler BatchDelete{{ .StructNamePlural }}
+    post /{{ .RouteName }}/batch{{ .Delimiter }}delete (BatchDelete{{ .StructNamePlural }}{{ .ReqName }}) returns (BatchDelete{{ .StructNamePlural }}{{ .RespName }})
 }
 
 // -------------------- {{ .TableComment }} {{ .StructName }} -------------------- //
@@ -76,113 +76,113 @@ type {{ .StructName }} {
     {{ .StructInfo }}
 }
 
-// Get{{ .StructName }}Req 查询{{ .TableComment }}请求
-type Get{{ .StructName }}Req {
+// Get{{ .StructName }}{{ .ReqName }} 获取{{ .TableComment }}请求
+type Get{{ .StructName }}{{ .ReqName }} {
     {{ .IdName }} {{ .IdType }} `path:"{{ .IdRawName }}" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
 }
 
-// Get{{ .StructName }}Resp 查询{{ .TableComment }}响应
-type Get{{ .StructName }}Resp {
+// Get{{ .StructName }}{{ .RespName }} 获取{{ .TableComment }}响应
+type Get{{ .StructName }}{{ .RespName }} {
     {{ .StructName }}
 }
 
-// Paginate{{ .StructName }}Req 获取{{ .TableComment }}分页请求
-type Paginate{{ .StructName }}Req {
+// List{{ .StructNamePlural }}{{ .ReqName }} 列出{{ .TableComment }}请求
+type List{{ .StructNamePlural }}{{ .ReqName }} {
     {{ .StructGetInfo }}
     Page     int64 `form:"page" validate:"required" label:"页数"`        // 页数
     PageSize int64 `form:"page_size" validate:"required" label:"每条页数"` // 每条页数
 }
 
-// Paginate{{ .StructName }}Resp 获取{{ .TableComment }}分页响应
-type Paginate{{ .StructName }}Resp {
+// List{{ .StructNamePlural }}{{ .RespName }} 列出{{ .TableComment }}响应
+type List{{ .StructNamePlural }}{{ .RespName }} {
     Count     int64                `json:"count"`      // 总数
     PageCount int64                `json:"page_count"` // 页数
     Results   []*{{ .StructName }} `json:"results"`    // 结果
 }
 
-// Create{{ .StructName }}Req 创建{{ .TableComment }}请求
-type Create{{ .StructName }}Req {
+// Create{{ .StructName }}{{ .ReqName }} 创建{{ .TableComment }}请求
+type Create{{ .StructName }}{{ .ReqName }} {
     {{ .StructCreateInfo }}
 }
 
-// Create{{ .StructName }}Resp 创建{{ .TableComment }}响应
-type Create{{ .StructName }}Resp {
+// Create{{ .StructName }}{{ .RespName }} 创建{{ .TableComment }}响应
+type Create{{ .StructName }}{{ .RespName }} {
     {{ .StructName }}
 }
 
-// Update{{ .StructName }}Req 更新{{ .TableComment }}请求
-type Update{{ .StructName }}Req {
+// Update{{ .StructName }}{{ .ReqName }} 更新{{ .TableComment }}请求
+type Update{{ .StructName }}{{ .ReqName }} {
     {{ .StructUpdateInfo }}
 }
 
-// Update{{ .StructName }}Resp 更新{{ .TableComment }}响应
-type Update{{ .StructName }}Resp {
+// Update{{ .StructName }}{{ .RespName }} 更新{{ .TableComment }}响应
+type Update{{ .StructName }}{{ .RespName }} {
     {{ .StructName }}
 }
 
-// Delete{{ .StructName }}Req 删除{{ .TableComment }}请求
-type Delete{{ .StructName }}Req {
+// Delete{{ .StructName }}{{ .ReqName }} 删除{{ .TableComment }}请求
+type Delete{{ .StructName }}{{ .ReqName }} {
     {{ .IdName }} {{ .IdType }} `path:"{{ .IdRawName }}" validate:"required" label:"{{ .IdLabel }}"` // {{ .IdComment }}
 }
 
-// Delete{{ .StructName }}Resp 删除{{ .TableComment }}响应
-type Delete{{ .StructName }}Resp {
+// Delete{{ .StructName }}{{ .RespName }} 删除{{ .TableComment }}响应
+type Delete{{ .StructName }}{{ .RespName }} {
     {{ .IdName }} {{ .IdType }} `json:"{{ .IdRawName }}"` // {{ .IdComment }}
 }
 
-// Patch{{ .StructName }}Req 部分更新{{ .TableComment }}请求
-type Patch{{ .StructName }}Req {
+// Patch{{ .StructName }}{{ .ReqName }} 修补{{ .TableComment }}请求
+type Patch{{ .StructName }}{{ .ReqName }} {
     {{ .StructUpdateInfo }}
 }
 
-// Patch{{ .StructName }}Resp 部分更新{{ .TableComment }}响应
-type Patch{{ .StructName }}Resp {
+// Patch{{ .StructName }}{{ .RespName }} 修补{{ .TableComment }}响应
+type Patch{{ .StructName }}{{ .RespName }} {
     {{ .StructName }}
 }
 
-// {{ .StructName }}Filter {{ .TableComment }}筛选参数
+// {{ .StructName }}Filter {{ .TableComment }}过滤参数
 type {{ .StructName }}Filter {
     {{ .IdNamePlural }} []{{ .IdType }} `json:"{{ .IdRawNamePlural }},optional"` // {{ .IdComment }}列表
     {{ .StructFilterInfo }}
 }
 
-// List{{ .StructName }}Req 获取{{ .TableComment }}列表请求
-type List{{ .StructName }}Req {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}筛选参数
+// BatchGet{{ .StructNamePlural }}{{ .ReqName }} 批量获取{{ .TableComment }}请求
+type BatchGet{{ .StructNamePlural }}{{ .ReqName }} {
+    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
 }
 
-// List{{ .StructName }}Resp 获取{{ .TableComment }}列表响应
-type List{{ .StructName }}Resp {
+// BatchGet{{ .StructNamePlural }}{{ .RespName }} 批量获取{{ .TableComment }}响应
+type BatchGet{{ .StructNamePlural }}{{ .RespName }} {
     Results []*{{ .StructName }} `json:"results"` // 结果
 }
 
-// Create{{ .StructNamePlural }}Req 批量创建{{ .TableComment }}请求
-type Create{{ .StructNamePlural }}Req {
-    Objects []*Create{{ .StructName }}Req `json:"objects" validate:"gt=0,dive" label:"{{ .TableComment }}列表"` // {{ .TableComment }}列表
+// BatchCreate{{ .StructNamePlural }}{{ .ReqName }} 批量创建{{ .TableComment }}请求
+type BatchCreate{{ .StructNamePlural }}{{ .ReqName }} {
+    Objects []*Create{{ .StructName }}{{ .ReqName }} `json:"objects" validate:"gt=0,dive" label:"{{ .TableComment }}列表"` // {{ .TableComment }}列表
 }
 
-// Create{{ .StructNamePlural }}Resp 批量创建{{ .TableComment }}响应
-type Create{{ .StructNamePlural }}Resp {
+// BatchCreate{{ .StructNamePlural }}{{ .RespName }} 批量创建{{ .TableComment }}响应
+type BatchCreate{{ .StructNamePlural }}{{ .RespName }} {
     Results []*{{ .StructName }} `json:"results"` // 结果
 }
 
-// Update{{ .StructNamePlural }}Req 批量更新{{ .TableComment }}请求
-type Update{{ .StructNamePlural }}Req {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}筛选参数
+// BatchUpdate{{ .StructNamePlural }}{{ .ReqName }} 批量更新{{ .TableComment }}请求
+type BatchUpdate{{ .StructNamePlural }}{{ .ReqName }} {
+    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
     {{ .StructBatchUpdateInfo }}
 }
 
-// Update{{ .StructNamePlural }}Resp 批量更新{{ .TableComment }}响应
-type Update{{ .StructNamePlural }}Resp {
+// BatchUpdate{{ .StructNamePlural }}{{ .RespName }} 批量更新{{ .TableComment }}响应
+type BatchUpdate{{ .StructNamePlural }}{{ .RespName }} {
     Affected int64 `json:"affected"` // 影响数量
 }
 
-// Delete{{ .StructNamePlural }}Req 批量删除{{ .TableComment }}请求
-type Delete{{ .StructNamePlural }}Req {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}筛选参数
+// BatchDelete{{ .StructNamePlural }}{{ .ReqName }} 批量删除{{ .TableComment }}请求
+type BatchDelete{{ .StructNamePlural }}{{ .ReqName }} {
+    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
 }
 
-// Delete{{ .StructNamePlural }}Resp 批量删除{{ .TableComment }}响应
-type Delete{{ .StructNamePlural }}Resp {
+// BatchDelete{{ .StructNamePlural }}{{ .RespName }} 批量删除{{ .TableComment }}响应
+type BatchDelete{{ .StructNamePlural }}{{ .RespName }} {
     Affected int64 `json:"affected"` // 影响数量
 }

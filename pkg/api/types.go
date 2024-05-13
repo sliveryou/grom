@@ -25,13 +25,14 @@ type Config struct {
 	Email   string `json:"email"`
 	Version string `json:"version"`
 
-	ServiceName  string `json:"service_name"` // camel
-	RoutePrefix  string `json:"route_prefix"` // lower
-	GroupPrefix  string `json:"group_prefix"` // lower
-	RouteStyle   string `json:"route_style"`  // one of [snake, kebab], default is kebab
-	QueryStyle   string `json:"query_style"`  // one of [value, pointer], default is pointer
-	EnablePlural bool   `json:"enable_plural"`
-	EnableModel  bool   `json:"enable_model"`
+	ServiceName      string `json:"service_name"` // camel
+	RoutePrefix      string `json:"route_prefix"` // lower
+	GroupPrefix      string `json:"group_prefix"` // lower
+	RouteStyle       string `json:"route_style"`  // one of [snake, kebab], default is kebab
+	QueryStyle       string `json:"query_style"`  // one of [value, pointer], default is pointer
+	EnablePlural     bool   `json:"enable_plural"`
+	EnableModel      bool   `json:"enable_model"`
+	EnableStructAbbr bool   `json:"enable_struct_abbr"`
 }
 
 // GetCmdConfig gets the *util.CmdConfig.

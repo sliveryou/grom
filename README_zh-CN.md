@@ -102,6 +102,8 @@ route_style: "kebab"
 query_style: "value"
 # 是否需要路由单词复数
 enable_plural: true
+# 是否启用结构体缩写，如 Request -> Req，Response -> Resp 等
+enable_struct_abbr: true
 
 # 代码生成相关配置
 # 将要生成的文件所在目录，如果为相对路径，则相对于命令执行路径生成，必填
@@ -191,6 +193,8 @@ route_style: "kebab"
 query_style: "value"
 # 是否需要路由单词复数
 enable_plural: true
+# 是否启用结构体缩写，如 Request -> Req，Response -> Resp 等
+enable_struct_abbr: true
 
 # 代码生成相关配置
 # 将要生成的文件所在目录，如果为相对路径，则相对于命令执行路径生成，必填

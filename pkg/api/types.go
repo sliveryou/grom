@@ -29,6 +29,7 @@ type Config struct {
 	RoutePrefix      string `json:"route_prefix"` // lower
 	GroupPrefix      string `json:"group_prefix"` // lower
 	RouteStyle       string `json:"route_style"`  // one of [snake, kebab], default is kebab
+	TagStyle         string `json:"tag_style"`    // one of [snake, kebab, camel, lower_camel], default is snake
 	QueryStyle       string `json:"query_style"`  // one of [value, pointer], default is pointer
 	EnablePlural     bool   `json:"enable_plural"`
 	EnableModel      bool   `json:"enable_model"`
@@ -63,6 +64,38 @@ func (c *Config) GetDelimiter() uint8 {
 	}
 
 	return delimiter
+}
+
+// GetTagConverter gets the tag converter.
+func (c *Config) GetTagConverter() func(s string) string {
+	switch c.TagStyle {
+	case TagStyleKebab:
+		return strcase.ToKebab
+	case TagStyleCamel:
+		return func(s string) string {
+			s = strcase.ToCamel(s)
+			if c.EnableInitialism {
+				s = initialismsReplacer.Replace(s)
+			}
+			return s
+		}
+	case TagStyleLowerCamel:
+		return func(s string) string {
+			s = strcase.ToLowerCamel(s)
+			if c.EnableInitialism {
+				s = initialismsReplacer.Replace(s)
+			}
+			return s
+		}
+	default:
+		return strcase.ToSnake
+	}
+}
+
+// TagConvert converts the tag.
+func (c *Config) TagConvert(s string) string {
+	converter := c.GetTagConverter()
+	return converter(s)
 }
 
 // ProjectConfig represents the config of the generated project.
@@ -106,6 +139,7 @@ type StructField struct {
 	Name         string
 	Type         string
 	Comment      string
+	TagName      string
 	RawName      string
 	RawType      string
 	DataType     string
@@ -116,11 +150,12 @@ type StructField struct {
 }
 
 // ToStructField converts the util.StructField to StructField.
-func ToStructField(sf *util.StructField) StructField {
+func (c *Config) ToStructField(sf *util.StructField) StructField {
 	return StructField{
 		Name:         sf.Name,
 		Type:         sf.Type,
 		Comment:      sf.Comment,
+		TagName:      c.TagConvert(sf.RawName),
 		RawName:      sf.RawName,
 		RawType:      sf.Type,
 		DataType:     sf.DataType,
@@ -178,7 +213,7 @@ func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 
 	fields := make([]StructField, 0, len(fs))
 	for _, f := range fs {
-		fi := ToStructField(f)
+		fi := c.ToStructField(f)
 		// ignore fields
 		if len(c.IgnoreFields) > 0 && contains(c.IgnoreFields, fi.RawName) {
 			continue
@@ -213,7 +248,7 @@ func getGenerateConfig(c Config, fs []*util.StructField) generateConfig {
 			gc.IdName = fi.Name
 			gc.IdNamePlural = inflection.Plural(gc.IdName)
 			gc.IdType = fi.Type
-			gc.IdRawName = fi.RawName
+			gc.IdRawName = fi.TagName
 			gc.IdRawNamePlural = inflection.Plural(gc.IdRawName)
 			if fi.Comment != "" {
 				gc.IdComment = fi.Comment

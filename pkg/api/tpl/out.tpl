@@ -89,15 +89,15 @@ type Get{{ .StructName }}{{ .RespName }} {
 // List{{ .StructNamePlural }}{{ .ReqName }} 列出{{ .TableComment }}请求
 type List{{ .StructNamePlural }}{{ .ReqName }} {
     {{ .StructGetInfo }}
-    Page     int64 `form:"page" validate:"required" label:"页数"`        // 页数
-    PageSize int64 `form:"page_size" validate:"required" label:"每条页数"` // 每条页数
+    Page     int64 `form:"{{ .C.TagConvert "page" }}" validate:"required" label:"页数"`        // 页数
+    PageSize int64 `form:"{{ .C.TagConvert "page_size" }}" validate:"required" label:"每条页数"` // 每条页数
 }
 
 // List{{ .StructNamePlural }}{{ .RespName }} 列出{{ .TableComment }}响应
 type List{{ .StructNamePlural }}{{ .RespName }} {
-    Count     int64                `json:"count"`      // 总数
-    PageCount int64                `json:"page_count"` // 页数
-    Results   []*{{ .StructName }} `json:"results"`    // 结果
+    Count     int64                `json:"{{ .C.TagConvert "count" }}"`      // 总数
+    PageCount int64                `json:"{{ .C.TagConvert "page_count" }}"` // 页数
+    Results   []*{{ .StructName }} `json:"{{ .C.TagConvert "results" }}"`    // 结果
 }
 
 // Create{{ .StructName }}{{ .ReqName }} 创建{{ .TableComment }}请求
@@ -148,41 +148,41 @@ type {{ .StructName }}Filter {
 
 // BatchGet{{ .StructNamePlural }}{{ .ReqName }} 批量获取{{ .TableComment }}请求
 type BatchGet{{ .StructNamePlural }}{{ .ReqName }} {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
+    Filter {{ .StructName }}Filter `json:"{{ .C.TagConvert "filter" }}"` // {{ .TableComment }}过滤参数
 }
 
 // BatchGet{{ .StructNamePlural }}{{ .RespName }} 批量获取{{ .TableComment }}响应
 type BatchGet{{ .StructNamePlural }}{{ .RespName }} {
-    Results []*{{ .StructName }} `json:"results"` // 结果
+    Results []*{{ .StructName }} `json:"{{ .C.TagConvert "results" }}"` // 结果
 }
 
 // BatchCreate{{ .StructNamePlural }}{{ .ReqName }} 批量创建{{ .TableComment }}请求
 type BatchCreate{{ .StructNamePlural }}{{ .ReqName }} {
-    Objects []*Create{{ .StructName }}{{ .ReqName }} `json:"objects" validate:"gt=0,dive" label:"{{ .TableComment }}列表"` // {{ .TableComment }}列表
+    Objects []*Create{{ .StructName }}{{ .ReqName }} `json:"{{ .C.TagConvert "objects" }}" validate:"gt=0,dive" label:"{{ .TableComment }}列表"` // {{ .TableComment }}列表
 }
 
 // BatchCreate{{ .StructNamePlural }}{{ .RespName }} 批量创建{{ .TableComment }}响应
 type BatchCreate{{ .StructNamePlural }}{{ .RespName }} {
-    Results []*{{ .StructName }} `json:"results"` // 结果
+    Results []*{{ .StructName }} `json:"{{ .C.TagConvert "results" }}"` // 结果
 }
 
 // BatchUpdate{{ .StructNamePlural }}{{ .ReqName }} 批量更新{{ .TableComment }}请求
 type BatchUpdate{{ .StructNamePlural }}{{ .ReqName }} {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
+    Filter {{ .StructName }}Filter `json:"{{ .C.TagConvert "filter" }}"` // {{ .TableComment }}过滤参数
     {{ .StructBatchUpdateInfo }}
 }
 
 // BatchUpdate{{ .StructNamePlural }}{{ .RespName }} 批量更新{{ .TableComment }}响应
 type BatchUpdate{{ .StructNamePlural }}{{ .RespName }} {
-    Affected int64 `json:"affected"` // 影响数量
+    Affected int64 `json:"{{ .C.TagConvert "affected" }}"` // 影响数量
 }
 
 // BatchDelete{{ .StructNamePlural }}{{ .ReqName }} 批量删除{{ .TableComment }}请求
 type BatchDelete{{ .StructNamePlural }}{{ .ReqName }} {
-    Filter {{ .StructName }}Filter `json:"filter"` // {{ .TableComment }}过滤参数
+    Filter {{ .StructName }}Filter `json:"{{ .C.TagConvert "filter" }}"` // {{ .TableComment }}过滤参数
 }
 
 // BatchDelete{{ .StructNamePlural }}{{ .RespName }} 批量删除{{ .TableComment }}响应
 type BatchDelete{{ .StructNamePlural }}{{ .RespName }} {
-    Affected int64 `json:"affected"` // 影响数量
+    Affected int64 `json:"{{ .C.TagConvert "affected" }}"` // 影响数量
 }

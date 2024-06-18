@@ -66,6 +66,15 @@ const (
 	// RouteStyleKebab kebab route style.
 	RouteStyleKebab = "kebab"
 
+	// TagStyleSnake snake tag style.
+	TagStyleSnake = "snake"
+	// TagStyleKebab kebab tag style.
+	TagStyleKebab = "kebab"
+	// TagStyleCamel camel tag style.
+	TagStyleCamel = "camel"
+	// TagStyleLowerCamel lower camel tag style.
+	TagStyleLowerCamel = "lower_camel"
+
 	// QueryStyleValue value query style.
 	QueryStyleValue = "value"
 	// QueryStylePointer pointer query style.
@@ -264,6 +273,7 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 	}
 	structGetInfo := buildStructGetInfo(gc.StructFields, c.QueryStyle == QueryStylePointer)
 	err := generator.ExecuteTemplate(buffer, outTplName, struct {
+		C                     *Config
 		ReqName               string
 		RespName              string
 		TableComment          string
@@ -290,6 +300,7 @@ func GenerateAPI(c Config, fs []*util.StructField) (string, error) {
 		StructFilterInfo      string
 		StructBatchUpdateInfo string
 	}{
+		C:                     &c,
 		ReqName:               reqName,
 		RespName:              respName,
 		TableComment:          c.TableComment,
@@ -356,7 +367,7 @@ func buildStructInfo(fs []StructField) string {
 	b := &strings.Builder{}
 
 	for _, f := range fs {
-		field := fmt.Sprintf("\t%s %s `json:%q`", f.Name, f.Type, f.RawName)
+		field := fmt.Sprintf("\t%s %s `json:%q`", f.Name, f.Type, f.TagName)
 		if f.Comment != "" {
 			field += commentPrefix + f.Comment
 		}
@@ -374,7 +385,7 @@ func buildStructGetInfo(fs []StructField, isPointerStyle bool) string {
 		if f.IsPrimaryKey || isReferenceType(f.Type) {
 			continue
 		}
-		tag := fmt.Sprintf("form:\"%s,optional\"", f.RawName)
+		tag := fmt.Sprintf("form:\"%s,optional\"", f.TagName)
 		if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
 			f.Type = toPointer(f.Type)
 			tag += fmt.Sprintf(" validate:\"omitempty,oneof=%s\" label:%q",
@@ -404,10 +415,10 @@ func buildStructCreateInfo(fs []StructField) string {
 			continue
 		}
 		needLabel := false
-		tag := fmt.Sprintf("json:\"%s,optional\"", f.RawName)
+		tag := fmt.Sprintf("json:\"%s,optional\"", f.TagName)
 		if !f.IsNullable && isDefaultEmpty(f.Default, f.Type) {
 			validate := " validate:\"required\""
-			tag = fmt.Sprintf("json:%q", f.RawName)
+			tag = fmt.Sprintf("json:%q", f.TagName)
 			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
 				f.Type = toPointer(f.Type)
 				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", f.Enums)
@@ -458,10 +469,10 @@ func buildStructUpdateInfo(fs []StructField, isBatchUpdate ...bool) string {
 			prefix = "path"
 		}
 		needLabel := false
-		tag := fmt.Sprintf("%s:\"%s,optional\"", prefix, f.RawName)
+		tag := fmt.Sprintf("%s:\"%s,optional\"", prefix, f.TagName)
 		if !f.IsNullable && isDefaultEmpty(f.Default, f.Type) && !isBatch {
 			validate := " validate:\"required\""
-			tag = fmt.Sprintf("%s:%q", prefix, f.RawName)
+			tag = fmt.Sprintf("%s:%q", prefix, f.TagName)
 			if contains([]string{util.GoInt, util.GoInt32}, f.Type) && f.Enums != "" {
 				f.Type = toPointer(f.Type)
 				validate = fmt.Sprintf(" validate:\"required,oneof=%s\"", f.Enums)
